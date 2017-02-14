@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.LocaleResolver;
 
-import x.mvmn.carpool.service.EmailService;
 import x.mvmn.carpool.service.persistence.UserRepository;
 
 @Controller
@@ -32,26 +31,13 @@ public class IndexController {
 	@Autowired
 	LocaleResolver localeResolver;
 
-	@Autowired
-	EmailService emailService;
-
 	@Value("${mvmncarpool.locales}")
 	String availableLocales;
-
-	@Value("${mail.username}")
-	String mailSender;
 
 	@RequestMapping("/")
 	@PreAuthorize("hasRole('ROLE_USER')")
 	public String index(Model model) {
 		model.addAttribute("userCount", userRepository.count());
-
-		try {
-			emailService.send("<html><body>Test <B>here</B></body></html>", "Test here", mailSender, "Test here", "sauron.inbox@gmail.com");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
 		return "index";
 	}
 

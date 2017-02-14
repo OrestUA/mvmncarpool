@@ -55,7 +55,7 @@ public class EmailService {
 			mimeMessage.setText(textContent, StandardCharsets.UTF_8.name());
 		}
 		if (htmlContent != null) {
-			mimeMessage.setContent(textContent, "text/html; charset=utf-8");
+			mimeMessage.setContent(htmlContent, "text/html; charset=utf-8");
 		}
 		Transport.send(mimeMessage);
 	}
