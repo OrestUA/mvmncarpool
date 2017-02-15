@@ -3,10 +3,18 @@
 <head>
 <title th:text="#{sitename}"></title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script>
+	function setLocale(locale, csrfToken) {
+		var f = document.createElement("form");
+		f.action="/locale/" + locale + "?_csrf=" + csrfToken;
+		f.method="POST"
+		f.submit();
+	}
+</script>
 </head>
 <body>
 	<div>
-		<a th:each="localevar:${locales}" th:href="${'/locale/' + localevar + '?redirect=signin'}" th:text="#{${'locale.' + localevar}}"></a>
+		<button th:each="localevar:${locales}" th:text="#{${'locale.' + localevar}}" th:onclick="'setLocale(\'' + ${localevar} + '\',\'' + ${_csrf.token} + '\')'"></button>
 	</div>
 	<div>
 		<h4 th:text="#{label.login}"></h4>
