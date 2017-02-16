@@ -1,5 +1,7 @@
 package x.mvmn.carpool.web.ctrl;
 
+import java.util.Locale;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.hibernate.validator.constraints.Email;
@@ -28,26 +30,32 @@ public class RegistrationController {
 	@Autowired
 	UserConfirmationService userConfirmationService;
 
-	@Value("${mvmncarpool.user.confirmation.required}")
+	@Value("${mvmncarpool.user.confirmation.required:true}")
 	boolean confirmationRequired;
 
 	@RequestMapping(path = "/register", method = RequestMethod.POST)
 	public @ResponseBody String doRegister(@Email @RequestParam("email") String emailAddress, @RequestParam("password") String password,
-			@RequestParam("passwordConfirmation") String passwordConfirmation, HttpServletResponse response) {
+			@RequestParam("passwordConfirmation") String passwordConfirmation, Locale locale, HttpServletResponse response) {
 		String result;
 		// TODO: Configurable password validation (min length and characters)
 		// TODO: Validate email/username
 		if (password != null && password.length() > 8 && password.equals(passwordConfirmation)) {
-			User user = new User();
-			user.setEmailAddress(emailAddress);
-			user.setPassword(passwordEncoder.encode(password));
-			if (confirmationRequired) {
-				user.setConfirmationRequestId(userConfirmationService.sendConfirmationRequest(user));
-			} else {
-				user.setConfirmed(true);
+			try {
+				User user = new User();
+				user.setEmailAddress(emailAddress);
+				user.setPassword(passwordEncoder.encode(password));
+				if (confirmationRequired) {
+					user.setConfirmationRequestId(userConfirmationService.sendConfirmationRequest(user, locale));
+
+				} else {
+					user.setConfirmed(true);
+				}
+				userRepository.save(user);
+				result = "ok";
+			} catch (Exception e) {
+				// TODO: better handling
+				throw new RuntimeException(e);
 			}
-			userRepository.save(user);
-			result = "ok";
 		} else {
 			result = "Invalid password or passwords don't match";
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -55,7 +63,7 @@ public class RegistrationController {
 		return result;
 	}
 
-	@RequestMapping(path = "/confirm", method = RequestMethod.POST)
+	@RequestMapping(path = "/confirm_reg", method = RequestMethod.POST)
 	public void doRegister(@Email @RequestParam("email") String emailAddress,
 			@RequestParam(UserConfirmationService.CONFIRMATION_ID_PARAM_NAME) String confirmationId, HttpServletResponse response) {
 		User user = userConfirmationService.validateConfirmationResponse(emailAddress, confirmationId);

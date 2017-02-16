@@ -1,0 +1,2 @@
+Go register!
+[# th:text="${confirmationRequestId}"/]
