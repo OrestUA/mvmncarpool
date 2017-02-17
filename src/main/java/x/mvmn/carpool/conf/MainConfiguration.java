@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MainConfiguration {
 
-	@Value("${mail.configprops}")
+	@Value("${mvmncarpool.mail.configprops}")
 	protected String propertiesPath;
 
 	@Bean

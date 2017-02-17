@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.hibernate.validator.constraints.Email;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -33,6 +34,11 @@ public class RegistrationController {
 	@Value("${mvmncarpool.user.confirmation.required:true}")
 	boolean confirmationRequired;
 
+	@RequestMapping(path = "/check_email_available")
+	public @ResponseBody boolean checkEmailAvailability(@RequestParam("email") String emailAddress) {
+		return userRepository.findByEmailAddress(emailAddress) == null;
+	}
+
 	@RequestMapping(path = "/register", method = RequestMethod.POST)
 	public @ResponseBody String doRegister(@Email @RequestParam("email") String emailAddress, @RequestParam("password") String password,
 			@RequestParam("passwordConfirmation") String passwordConfirmation, Locale locale, HttpServletResponse response) {
@@ -40,20 +46,31 @@ public class RegistrationController {
 		// TODO: Configurable password validation (min length and characters)
 		// TODO: Validate email/username
 		if (password != null && password.length() > 8 && password.equals(passwordConfirmation)) {
+			User user = null;
 			try {
-				User user = new User();
+				user = new User();
 				user.setEmailAddress(emailAddress);
 				user.setPassword(passwordEncoder.encode(password));
+				user = userRepository.save(user);
 				if (confirmationRequired) {
 					user.setConfirmationRequestId(userConfirmationService.sendConfirmationRequest(user, locale));
-
 				} else {
 					user.setConfirmed(true);
 				}
 				userRepository.save(user);
 				result = "ok";
+			} catch (DataIntegrityViolationException ex) {
+				// TODO: re-check email availability
+				throw new RuntimeException("Email already taken");
 			} catch (Exception e) {
 				// TODO: better handling
+				try {
+					if (user != null) {
+						userRepository.delete(user);
+					}
+				} catch (Exception cleanupUserException) {
+					cleanupUserException.printStackTrace();
+				}
 				throw new RuntimeException(e);
 			}
 		} else {
@@ -63,14 +80,18 @@ public class RegistrationController {
 		return result;
 	}
 
-	@RequestMapping(path = "/confirm_reg", method = RequestMethod.POST)
+	// TODO: password reset function
+
+	@RequestMapping(path = "/confirm_reg", method = RequestMethod.GET)
 	public void doRegister(@Email @RequestParam("email") String emailAddress,
 			@RequestParam(UserConfirmationService.CONFIRMATION_ID_PARAM_NAME) String confirmationId, HttpServletResponse response) {
 		User user = userConfirmationService.validateConfirmationResponse(emailAddress, confirmationId);
 		if (user != null) {
 			user.setConfirmed(true);
 			userRepository.save(user);
+			// TODO: serve confirmation page - use non-REST controller
 		} else {
+			// TODO: serve error page - use non-REST controller
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 	}

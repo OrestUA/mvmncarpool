@@ -1,0 +1,6 @@
+Welcome to [[ #{sitename} ]]
+
+Go register!
+[[ ${confirmationRequestId} ]]
+
+[[ @{${siteBaseUrl+'/confirm_reg'}(email=${user.emailAddress},${confirmationIdParamName}=${confirmationRequestId})} ]]

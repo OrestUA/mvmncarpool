@@ -1,21 +1,23 @@
 package x.mvmn.carpool.service;
 
+import static x.mvmn.util.CollectionsUtil.pair;
+
 import java.util.Locale;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
 import org.thymeleaf.spring4.SpringTemplateEngine;
 
 import x.mvmn.carpool.l10n.ExtReloadableResourceBundleMessageSource;
 import x.mvmn.carpool.model.User;
 import x.mvmn.carpool.service.persistence.UserRepository;
-import x.mvmn.util.spring.mvc.ThymeleafContext;
+import x.mvmn.util.CollectionsUtil;
 
 @Service
 public class UserConfirmationService {
@@ -34,6 +36,9 @@ public class UserConfirmationService {
 	@Value("${mail.username}")
 	String senderEmailAddress;
 
+	@Value("${mvmncarpool.baseurl}")
+	String siteBaseUrl;
+
 	@Autowired
 	ExtReloadableResourceBundleMessageSource msgSource;
 
@@ -46,10 +51,8 @@ public class UserConfirmationService {
 		String localizedSitename = msgSource.getMessage("sitename", null, locale);
 		String localizedSubject = msgSource.getMessage("mail.confirmation.subject", new Object[] { localizedSitename }, locale);
 
-		ThymeleafContext tymeleafContext = new ThymeleafContext(locale, new ImmutablePair<String, Object>("user", user),
-				new ImmutablePair<String, Object>("confirmationRequestId", requestId));
-		// FIXME: find a way to render TXT template
-		emailService.send(engine.process("email_register", tymeleafContext), engine.process("email_register", tymeleafContext), senderEmailAddress,
+		Context thymeleafContext = createContext(locale, user, requestId);
+		emailService.send(engine.process("email/register", thymeleafContext), engine.process("email/register.txt", thymeleafContext), senderEmailAddress,
 				localizedSubject, user.getEmailAddress());
 		return requestId;
 	}
@@ -57,5 +60,11 @@ public class UserConfirmationService {
 	public User validateConfirmationResponse(String email, String requestId) {
 		User user = userRepository.findByEmailAddress(email);
 		return (user != null && requestId.equals(user.getConfirmationRequestId())) ? user : null;
+	}
+
+	protected Context createContext(Locale locale, User user, String requestId) {
+		return new Context(locale, CollectionsUtil.toHashMap(pair("user", user), pair("confirmationRequestId", requestId),
+				pair("confirmationIdParamName", UserConfirmationService.CONFIRMATION_ID_PARAM_NAME), pair("siteBaseUrl", siteBaseUrl)));
+
 	}
 }
