@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,7 +21,7 @@ import x.mvmn.carpool.service.UserConfirmationService;
 import x.mvmn.carpool.service.persistence.UserRepository;
 
 @RestController
-public class RegistrationController {
+public class UserController {
 
 	@Autowired
 	UserRepository userRepository;
@@ -39,10 +40,32 @@ public class RegistrationController {
 		return userRepository.findByEmailAddress(emailAddress) == null;
 	}
 
+	@RequestMapping(path = "/reset_password", method = RequestMethod.POST)
+	public @ResponseBody String resetPassword(@Email @RequestParam("email") String emailAddress, Locale locale, HttpServletResponse response) {
+
+		String result;
+		User user = userRepository.findByEmailAddress(emailAddress);
+		if (user != null) {
+			try {
+				user.setPasswordResetRequestId(userConfirmationService.sendPasswordResetRequest(user, locale));
+				user.setPasswordResetRequestUnixTime(System.currentTimeMillis() / 1000);
+				userRepository.save(user);
+				result = "Ok";
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			result = "No user.";
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+		}
+
+		return result;
+	}
+
 	@RequestMapping(path = "/register", method = RequestMethod.POST)
 	public @ResponseBody String doRegister(@Email @RequestParam("email") String emailAddress, @RequestParam("password") String password,
 			@RequestParam("passwordConfirmation") String passwordConfirmation, Locale locale, HttpServletResponse response) {
-		String result;
+		String result; // TODO: JSON object result
 		// TODO: Configurable password validation (min length and characters)
 		// TODO: Validate email/username
 		if (password != null && password.length() > 8 && password.equals(passwordConfirmation)) {
@@ -80,19 +103,22 @@ public class RegistrationController {
 		return result;
 	}
 
-	// TODO: password reset function
-
-	@RequestMapping(path = "/confirm_reg", method = RequestMethod.GET)
-	public void doRegister(@Email @RequestParam("email") String emailAddress,
-			@RequestParam(UserConfirmationService.CONFIRMATION_ID_PARAM_NAME) String confirmationId, HttpServletResponse response) {
-		User user = userConfirmationService.validateConfirmationResponse(emailAddress, confirmationId);
-		if (user != null) {
-			user.setConfirmed(true);
+	@RequestMapping(path = "/set_new_password", method = RequestMethod.POST)
+	public String setNewPassword(@Email @RequestParam("email") String emailAddress,
+			@RequestParam(UserConfirmationService.CONFIRMATION_ID_PARAM_NAME) String confirmationId, @RequestParam("password") String password,
+			@RequestParam("passwordConfirmation") String passwordConfirmation, HttpServletResponse response, Model model) {
+		String result;
+		User user = userConfirmationService.validatePasswordResetRequest(emailAddress, confirmationId);
+		// TODO: password validation in one place
+		if (user != null && password != null && password.length() > 8 && password.equals(passwordConfirmation)) {
+			user.setPassword(passwordEncoder.encode(password));
+			user.setPasswordResetRequestId(null);
+			user.setPasswordResetRequestUnixTime(0);
 			userRepository.save(user);
-			// TODO: serve confirmation page - use non-REST controller
+			result = "ok";
 		} else {
-			// TODO: serve error page - use non-REST controller
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			result = "error";
 		}
+		return result;
 	}
 }

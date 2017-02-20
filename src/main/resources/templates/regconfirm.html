@@ -1,0 +1,7 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div th:text="${regSuccess}? 'Registration successful' : 'Registration failed'"></div>
+	<div th:if="${alreadyConfirmed}">You have already confirmed your registration</div>
+</body>
+</html>

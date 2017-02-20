@@ -14,6 +14,8 @@ public class User {
 	protected String password;
 	protected Boolean confirmed;
 	protected String confirmationRequestId;
+	protected String passwordResetRequestId;
+	protected long passwordResetRequestUnixTime;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -58,5 +60,21 @@ public class User {
 
 	public void setConfirmationRequestId(String confirmationRequestId) {
 		this.confirmationRequestId = confirmationRequestId;
+	}
+
+	public String getPasswordResetRequestId() {
+		return passwordResetRequestId;
+	}
+
+	public void setPasswordResetRequestId(String passwordResetRequestId) {
+		this.passwordResetRequestId = passwordResetRequestId;
+	}
+
+	public long getPasswordResetRequestUnixTime() {
+		return passwordResetRequestUnixTime;
+	}
+
+	public void setPasswordResetRequestUnixTime(long passwordResetRequestUnixTime) {
+		this.passwordResetRequestUnixTime = passwordResetRequestUnixTime;
 	}
 }
