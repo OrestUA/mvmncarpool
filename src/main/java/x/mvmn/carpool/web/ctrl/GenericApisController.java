@@ -33,7 +33,7 @@ public class GenericApisController {
 	@Value("${mvmncarpool.locales}")
 	String availableLocales;
 
-	@RequestMapping("/l10n")
+	@RequestMapping(path = "/l10n", method = RequestMethod.GET)
 	public Map<String, String> getLocalizedMessages(HttpServletRequest request, @RequestParam(required = false, name = "locale") String localeCode) {
 		Locale locale = null;
 		if (localeCode != null) {

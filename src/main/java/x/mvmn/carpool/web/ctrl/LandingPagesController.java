@@ -28,14 +28,14 @@ public class LandingPagesController {
 	@Autowired
 	UserConfirmationService userConfirmationService;
 
-	@RequestMapping("/")
+	@RequestMapping(path = "/", method = RequestMethod.GET)
 	@PreAuthorize("hasRole('ROLE_USER')")
 	public String index(Model model) {
 		model.addAttribute("userCount", userRepository.count());
 		return "index";
 	}
 
-	@RequestMapping("/signin")
+	@RequestMapping(path = "/signin", method = RequestMethod.GET)
 	public String showSignin(Model model) {
 		model.addAttribute("locales", getAvailableLocales());
 		return "signin";
