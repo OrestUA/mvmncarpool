@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,9 @@ import x.mvmn.carpool.l10n.ExtReloadableResourceBundleMessageSource;
 
 @Configuration
 public class ThymeleafConfig {
+
+	@Value("${mvmncarpool.defaultlocale:en_US}")
+	String defaultLocaleLanguageTag;
 
 	@Bean
 	public SpringTemplateEngine thymeleafSpringTemplateEngine(@Autowired MessageSource messageSource) {
@@ -55,7 +59,7 @@ public class ThymeleafConfig {
 	@Bean
 	public LocaleResolver localeResolver() {
 		SessionLocaleResolver localeResolver = new SessionLocaleResolver();
-		localeResolver.setDefaultLocale(new Locale("en", "US")); // TODO: make configurable
+		localeResolver.setDefaultLocale(Locale.forLanguageTag(defaultLocaleLanguageTag));
 		return localeResolver;
 	}
 }
