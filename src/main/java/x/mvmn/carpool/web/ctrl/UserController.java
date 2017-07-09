@@ -1,6 +1,8 @@
 package x.mvmn.carpool.web.ctrl;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
@@ -100,9 +102,10 @@ public class UserController {
 	}
 
 	@RequestMapping(path = "/register", method = RequestMethod.POST)
-	public @ResponseBody String doRegister(@Email @RequestParam("email") String emailAddress, @RequestParam("password") String password,
+	public @ResponseBody Map<String, Object> doRegister(@Email @RequestParam("email") String emailAddress, @RequestParam("password") String password,
 			@RequestParam("passwordConfirmation") String passwordConfirmation, Locale locale, HttpServletResponse response) {
-		String result; // TODO: JSON object result
+		Map<String, Object> result = new HashMap<String, Object>(); // TODO: Specific class for generic result
+		result.put("success", Boolean.FALSE);
 		if (isEmailValid(emailAddress) && isEmailAvailable(emailAddress) && password != null && password.equals(passwordConfirmation)
 				&& isPasswordValid(passwordConfirmation)) {
 			User user = null;
@@ -117,7 +120,8 @@ public class UserController {
 					user.setConfirmed(true);
 				}
 				userRepository.save(user);
-				result = "ok";
+				result.put("success", Boolean.TRUE);
+				result.put("message", "Ok");
 			} catch (DataIntegrityViolationException ex) {
 				if (!isEmailAvailable(emailAddress)) {
 					throw new RuntimeException("Email already taken");
@@ -137,7 +141,7 @@ public class UserController {
 				throw new RuntimeException(e);
 			}
 		} else {
-			result = "Invalid password or passwords don't match";
+			result.put("message", "Invalid password or passwords don't match");
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 		return result;
