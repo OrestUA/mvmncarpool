@@ -14,6 +14,7 @@ public class Car {
 	protected String description;
 	protected String plateNumber;
 	protected User owner;
+	protected int passengerSeats;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -56,5 +57,13 @@ public class Car {
 
 	public void setOwner(User owner) {
 		this.owner = owner;
+	}
+
+	protected int getPassengerSeats() {
+		return passengerSeats;
+	}
+
+	protected void setPassengerSeats(int passengerSeats) {
+		this.passengerSeats = passengerSeats;
 	}
 }

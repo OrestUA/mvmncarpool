@@ -2,10 +2,10 @@
 - Registration
 - Store cars with their parameters (# of passenger places, color/brand, description/platenumber)
 - Store route info (multiple waypoints) for driver - allow later re-use
-- Store lift opportunity with route + time interval (for driver)
+- Store lift offer with route + time interval (for driver)
 - Store place coordinates for passenger - allow later re-use
 - Store lift request place + time interval (for passenger)
-- (Optional) Cleanup past lift opportunities/requests (i.e. after 24 hours)
+- (Optional) Cleanup past lift offer/requests (i.e. after 24 hours)
 - Notifications of matches request-opportunity (browser notifications? email? any other means?)
 
 // Google maps API notes

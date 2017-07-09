@@ -11,7 +11,7 @@ public class LiftJoinRequest {
 
 	protected int id;
 	protected LiftOffer offer;
-	protected User driver;
+	protected User user;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -33,11 +33,11 @@ public class LiftJoinRequest {
 	}
 
 	@ManyToOne(optional = false)
-	public User getDriver() {
-		return driver;
+	public User getUser() {
+		return user;
 	}
 
-	public void setDriver(User driver) {
-		this.driver = driver;
+	public void setUser(User user) {
+		this.user = user;
 	}
 }

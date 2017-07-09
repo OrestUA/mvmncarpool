@@ -1,10 +1,14 @@
 package x.mvmn.carpool.model;
 
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 @Entity
 public class User {
@@ -16,6 +20,11 @@ public class User {
 	protected String confirmationRequestId;
 	protected String passwordResetRequestId;
 	protected long passwordResetRequestUnixTime;
+	protected List<Route> routes;
+	protected List<LiftRequest> liftRequests;
+	protected List<LiftOffer> liftOffer;
+	protected List<LiftJoinRequest> liftJoinRequests;
+	protected List<Car> cars;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -76,5 +85,50 @@ public class User {
 
 	public void setPasswordResetRequestUnixTime(long passwordResetRequestUnixTime) {
 		this.passwordResetRequestUnixTime = passwordResetRequestUnixTime;
+	}
+
+	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
+	protected List<Route> getRoutes() {
+		return routes;
+	}
+
+	protected void setRoutes(List<Route> routes) {
+		this.routes = routes;
+	}
+
+	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
+	protected List<LiftRequest> getLiftRequests() {
+		return liftRequests;
+	}
+
+	protected void setLiftRequests(List<LiftRequest> liftRequests) {
+		this.liftRequests = liftRequests;
+	}
+
+	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
+	protected List<LiftOffer> getLiftOffer() {
+		return liftOffer;
+	}
+
+	protected void setLiftOffer(List<LiftOffer> liftOffer) {
+		this.liftOffer = liftOffer;
+	}
+
+	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
+	protected List<LiftJoinRequest> getLiftJoinRequests() {
+		return liftJoinRequests;
+	}
+
+	protected void setLiftJoinRequests(List<LiftJoinRequest> liftJoinRequests) {
+		this.liftJoinRequests = liftJoinRequests;
+	}
+
+	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "owner")
+	protected List<Car> getCars() {
+		return cars;
+	}
+
+	protected void setCars(List<Car> cars) {
+		this.cars = cars;
 	}
 }

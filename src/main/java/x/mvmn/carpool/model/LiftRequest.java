@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 @Entity
 public class LiftRequest {
@@ -13,6 +14,7 @@ public class LiftRequest {
 	protected long timeValidTo;
 	protected double lat;
 	protected double lon;
+	protected User user;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -54,5 +56,14 @@ public class LiftRequest {
 
 	public void setLon(double lon) {
 		this.lon = lon;
+	}
+
+	@ManyToOne(optional = false)
+	protected User getUser() {
+		return user;
+	}
+
+	protected void setUser(User user) {
+		this.user = user;
 	}
 }

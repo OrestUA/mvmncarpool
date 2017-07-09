@@ -14,6 +14,7 @@ import javax.persistence.OneToMany;
 public class LiftOffer {
 
 	protected int id;
+	protected User user;
 	protected Route route;
 	protected Car car;
 	protected int vacantSeats = 1;
@@ -29,6 +30,15 @@ public class LiftOffer {
 
 	public void setId(int id) {
 		this.id = id;
+	}
+
+	@ManyToOne(optional = false)
+	protected User getUser() {
+		return user;
+	}
+
+	protected void setUser(User user) {
+		this.user = user;
 	}
 
 	@ManyToOne(optional = false)

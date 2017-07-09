@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 @Entity
@@ -20,6 +21,7 @@ public class Route {
 	protected double endLat;
 	protected double endLon;
 	protected List<RouteWaypoint> waypoints;
+	protected User user;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -86,5 +88,14 @@ public class Route {
 
 	public void setWaypoints(List<RouteWaypoint> waypoints) {
 		this.waypoints = waypoints;
+	}
+
+	@ManyToOne(optional = false)
+	protected User getUser() {
+		return user;
+	}
+
+	protected void setUser(User user) {
+		this.user = user;
 	}
 }
