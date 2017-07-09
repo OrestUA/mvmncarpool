@@ -1,0 +1,54 @@
+// Functions
+- Registration
+- Store cars with their parameters (# of passenger places, color/brand, description/platenumber)
+- Store route info (multiple waypoints) for driver - allow later re-use
+- Store lift opportunity with route + time interval (for driver)
+- Store place coordinates for passenger - allow later re-use
+- Store lift request place + time interval (for passenger)
+- (Optional) Cleanup past lift opportunities/requests (i.e. after 24 hours)
+- Notifications of matches request-opportunity (browser notifications? email? any other means?)
+
+// Google maps API notes
+document.write('<div id="main" style="width: 600px; height: 600px;"></div>')
+var googleapis_script = document.createElement('script');
+googleapis_script.setAttribute('src','https://maps.googleapis.com/maps/api/js?libraries=places');
+document.head.appendChild(googleapis_script);
+
+
+map = new google.maps.Map(document.getElementById('main'), {
+center: {lat: -34.397, lng: 150.644}, zoom: 8 });
+        
+geocoder = new google.maps.Geocoder();
+markers = [];
+
+map.addListener("click", function(event) {
+    var lat = event.latLng.lat();
+    var lng = event.latLng.lng();
+    marker = new google.maps.Marker({ position: new google.maps.LatLng(lat, lng), map: map, draggable: true }); 
+    marker.addListener('dragend', function() { geocoder.geocode({latLng: marker.getPosition()}, function() { console.log(arguments); } ); });
+    markers.push(marker);
+});
+
+directionsService = new google.maps.DirectionsService()
+directionsDisplay = new google.maps.DirectionsRenderer({map:map, draggable: true})
+
+waypoints = [];
+for(i in markers) {
+marker = markers[i];
+waypoints.push({
+    location: new google.maps.LatLng(marker.position.lat(),marker.position.lng()),
+    stopover: true
+}) 
+}
+
+var r = null;
+directionsService.route({origin: new google.maps.LatLng(markers[0].position.lat(),markers[0].position.lng()), destination: new google.maps.LatLng(markers[1].position.lat(),markers[1].position.lng()), travelMode: 'DRIVING' }, function(route, status) { 
+directionsDisplay.setDirections(route); r = route; })
+
+
+placesService = new google.maps.places.PlacesService(map);
+pms = []
+for(k in directionsDisplay.directions.geocoded_waypoints) {
+wp = directionsDisplay.directions.geocoded_waypoints[k];
+placesService.getDetails({placeId: wp.place_id}, function(details, status) { pms.push(details) })
+}
