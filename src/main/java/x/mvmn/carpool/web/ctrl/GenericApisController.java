@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import x.mvmn.carpool.l10n.ExtReloadableResourceBundleMessageSource;
+import x.mvmn.carpool.web.dto.GenericResultDTO;
 
 @RestController
 public class GenericApisController {
@@ -49,14 +50,14 @@ public class GenericApisController {
 	}
 
 	@RequestMapping(path = "/locale/{locale}", method = RequestMethod.POST)
-	public String setLocale(@PathVariable("locale") String localeCode, HttpServletRequest request, HttpServletResponse response) {
-		Optional<Locale> localeOptional = localeFromCode(localeCode);
+	public GenericResultDTO setLocale(@PathVariable("locale") String localeCode, HttpServletRequest request, HttpServletResponse response) {
+		Optional<Locale> localeOptional = pickAvailableLocaleByCode(localeCode);
 		if (localeOptional.isPresent()) {
 			localeResolver.setLocale(request, response, localeOptional.get());
-			return "Ok";
+			return new GenericResultDTO(true, "Ok");
 		} else {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return "Unknown locale";
+			return new GenericResultDTO(false, "Unknown locale");
 		}
 	}
 
@@ -66,7 +67,7 @@ public class GenericApisController {
 		return token.getToken();
 	}
 
-	protected Optional<Locale> localeFromCode(String localeCode) {
+	protected Optional<Locale> pickAvailableLocaleByCode(String localeCode) {
 		return Arrays.stream(getAvailableLocales()).map(Locale::forLanguageTag).filter(locale -> locale.toLanguageTag().equals(localeCode)).findFirst();
 	}
 

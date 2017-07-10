@@ -1,8 +1,6 @@
 package x.mvmn.carpool.web.ctrl;
 
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
@@ -26,6 +24,7 @@ import com.savoirtech.logging.slf4j.json.logger.Logger;
 import x.mvmn.carpool.model.User;
 import x.mvmn.carpool.service.UserConfirmationService;
 import x.mvmn.carpool.service.persistence.UserRepository;
+import x.mvmn.carpool.web.dto.GenericResultDTO;
 
 @RestController
 public class UserController {
@@ -102,10 +101,9 @@ public class UserController {
 	}
 
 	@RequestMapping(path = "/register", method = RequestMethod.POST)
-	public @ResponseBody Map<String, Object> doRegister(@Email @RequestParam("email") String emailAddress, @RequestParam("password") String password,
+	public @ResponseBody GenericResultDTO doRegister(@Email @RequestParam("email") String emailAddress, @RequestParam("password") String password,
 			@RequestParam("passwordConfirmation") String passwordConfirmation, Locale locale, HttpServletResponse response) {
-		Map<String, Object> result = new HashMap<String, Object>(); // TODO: Specific class for generic result
-		result.put("success", Boolean.FALSE);
+		GenericResultDTO result = new GenericResultDTO(); // TODO: Specific class for generic result
 		if (isEmailValid(emailAddress) && isEmailAvailable(emailAddress) && password != null && password.equals(passwordConfirmation)
 				&& isPasswordValid(passwordConfirmation)) {
 			User user = null;
@@ -120,14 +118,16 @@ public class UserController {
 					user.setConfirmed(true);
 				}
 				userRepository.save(user);
-				result.put("success", Boolean.TRUE);
-				result.put("message", "Ok");
+				result.success = true;
+				result.message = "Ok";
 			} catch (DataIntegrityViolationException ex) {
-				if (!isEmailAvailable(emailAddress)) {
-					throw new RuntimeException("Email already taken");
-				} else {
-					throw ex;
-				}
+				// if (!isEmailAvailable(emailAddress)) {
+				// throw new RuntimeException("Email already taken");
+				// } else {
+				// throw ex;
+				// }
+				result.message = "Email already taken";
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			} catch (Exception e) {
 				// TODO: better handling
 				try {
@@ -141,7 +141,7 @@ public class UserController {
 				throw new RuntimeException(e);
 			}
 		} else {
-			result.put("message", "Invalid password or passwords don't match");
+			result.message = "Invalid password or passwords don't match";
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 		return result;
