@@ -25,6 +25,7 @@ public class User {
 	protected List<LiftOffer> liftOffer;
 	protected List<LiftJoinRequest> liftJoinRequests;
 	protected List<Car> cars;
+	protected List<StoredLocation> storedLocations;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -130,5 +131,14 @@ public class User {
 
 	protected void setCars(List<Car> cars) {
 		this.cars = cars;
+	}
+
+	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
+	protected List<StoredLocation> getStoredLocations() {
+		return storedLocations;
+	}
+
+	protected void setStoredLocations(List<StoredLocation> storedLocations) {
+		this.storedLocations = storedLocations;
 	}
 }
