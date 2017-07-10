@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderColumn;
 
 @Entity
 public class Route {
@@ -82,6 +83,7 @@ public class Route {
 	}
 
 	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "route")
+	@OrderColumn(name = "waypoint_index")
 	public List<RouteWaypoint> getWaypoints() {
 		return waypoints;
 	}
