@@ -52,3 +52,5 @@ for(k in directionsDisplay.directions.geocoded_waypoints) {
 wp = directionsDisplay.directions.geocoded_waypoints[k];
 placesService.getDetails({placeId: wp.place_id}, function(details, status) { pms.push(details) })
 }
+
+// https://developers.google.com/maps/documentation/javascript/directions?hl=en#DirectionsResults
