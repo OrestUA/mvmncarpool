@@ -1,6 +1,8 @@
 package x.mvmn.carpool.web.ctrl;
 
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
@@ -68,6 +70,10 @@ public class UserController {
 		INVALID, TAKEN, OK
 	}
 
+	public static enum PasswordInvalidityCause {
+		TOO_LONG, TOO_SHORT, BAD_CHARACTERS
+	}
+
 	@RequestMapping(path = "/check_email", method = RequestMethod.POST)
 	public @ResponseBody EmailCheckResult checkEmail(@RequestParam("email") String emailAddress) {
 		if (!isEmailValid(emailAddress)) {
@@ -103,9 +109,9 @@ public class UserController {
 	@RequestMapping(path = "/register", method = RequestMethod.POST)
 	public @ResponseBody GenericResultDTO doRegister(@Email @RequestParam("email") String emailAddress, @RequestParam("password") String password,
 			@RequestParam("passwordConfirmation") String passwordConfirmation, Locale locale, HttpServletResponse response) {
-		GenericResultDTO result = new GenericResultDTO(); // TODO: Specific class for generic result
+		GenericResultDTO result = new GenericResultDTO();
 		if (isEmailValid(emailAddress) && isEmailAvailable(emailAddress) && password != null && password.equals(passwordConfirmation)
-				&& isPasswordValid(passwordConfirmation)) {
+				&& isPasswordValid(passwordConfirmation).isEmpty()) {
 			User user = null;
 			try {
 				user = new User();
@@ -121,13 +127,12 @@ public class UserController {
 				result.success = true;
 				result.message = "Ok";
 			} catch (DataIntegrityViolationException ex) {
-				// if (!isEmailAvailable(emailAddress)) {
-				// throw new RuntimeException("Email already taken");
-				// } else {
-				// throw ex;
-				// }
-				result.message = "Email already taken";
-				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				if (!isEmailAvailable(emailAddress)) {
+					result.message = "Email already taken";
+					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				} else {
+					throw ex;
+				}
 			} catch (Exception e) {
 				// TODO: better handling
 				try {
@@ -148,20 +153,27 @@ public class UserController {
 	}
 
 	@RequestMapping(path = "/set_new_password", method = RequestMethod.POST)
-	public String setNewPassword(@Email @RequestParam("email") String emailAddress,
+	public GenericResultDTO setNewPassword(@Email @RequestParam("email") String emailAddress,
 			@RequestParam(UserConfirmationService.CONFIRMATION_ID_PARAM_NAME) String confirmationId, @RequestParam("password") String password,
 			@RequestParam("passwordConfirmation") String passwordConfirmation, HttpServletResponse response, Model model) {
-		String result;
+		GenericResultDTO result = new GenericResultDTO();
 		User user = userConfirmationService.validatePasswordResetRequest(emailAddress, confirmationId);
-		if (user != null && password != null && password.equals(passwordConfirmation) && isPasswordValid(password)) {
-			user.setPassword(passwordEncoder.encode(password));
-			user.setPasswordResetRequestId(null);
-			user.setPasswordResetRequestUnixTime(0);
-			userRepository.save(user);
-			result = "ok";
+		if (user != null && password != null && password.equals(passwordConfirmation)) {
+			Set<PasswordInvalidityCause> passwordValidationResult = isPasswordValid(password);
+			if (passwordValidationResult.isEmpty()) {
+				user.setPassword(passwordEncoder.encode(password));
+				user.setPasswordResetRequestId(null);
+				user.setPasswordResetRequestUnixTime(0);
+				userRepository.save(user);
+				result.success = true;
+				result.message = "ok";
+			} else {
+				// TODO: provide password validation result to UI
+				result.success = false;
+			}
 		} else {
 			// TODO: specific errors
-			result = "error";
+			result.success = false;
 		}
 		return result;
 	}
@@ -176,9 +188,20 @@ public class UserController {
 		return emailRegEx.matcher(email).matches();
 	}
 
-	protected boolean isPasswordValid(String password) {
+	protected Set<PasswordInvalidityCause> isPasswordValid(String password) {
+		Set<PasswordInvalidityCause> result = new HashSet<>();
 		// TODO: move to service/helper
 		int pwdLength = password.length();
-		return pwdLength >= passwordLengthMin && pwdLength <= passwordLengthMax && passwordRegEx.matcher(password).matches();
+		if (pwdLength < passwordLengthMin) {
+			result.add(PasswordInvalidityCause.TOO_SHORT);
+		}
+		if (pwdLength > passwordLengthMax) {
+			result.add(PasswordInvalidityCause.TOO_LONG);
+		}
+		if (!passwordRegEx.matcher(password).matches()) {
+			result.add(PasswordInvalidityCause.BAD_CHARACTERS);
+		}
+
+		return result;
 	}
 }
