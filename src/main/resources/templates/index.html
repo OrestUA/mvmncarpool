@@ -1,8 +1,12 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<title th:text="#{sitename}"></title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="static/css/normalize.css">
+	<link rel="stylesheet" href="static/css/skeleton.css">
+
+	<title th:text="#{sitename}"></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
 	<p th:text="'Users: ' + ${userCount}" />
