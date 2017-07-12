@@ -42,8 +42,8 @@ waypoints.push({
 }
 
 var r = null;
-directionsService.route({origin: new google.maps.LatLng(markers[0].position.lat(),markers[0].position.lng()), destination: new google.maps.LatLng(markers[1].position.lat(),markers[1].position.lng()), travelMode: 'DRIVING' }, function(route, status) { 
-directionsDisplay.setDirections(route); r = route; })
+directionsService.route({origin: new google.maps.LatLng(markers[0].position.lat(),markers[0].position.lng()), destination: new google.maps.LatLng(markers[1].position.lat(),markers[1].position.lng()), travelMode: 'DRIVING', optimizeWaypoints: true }, function(directionsResult, status) { 
+directionsDisplay.setDirections(directionsResult); r = directionsResult; })
 
 
 placesService = new google.maps.places.PlacesService(map);
@@ -54,3 +54,34 @@ placesService.getDetails({placeId: wp.place_id}, function(details, status) { pms
 }
 
 // https://developers.google.com/maps/documentation/javascript/directions?hl=en#DirectionsResults
+directionsDisplay.getDirections().routes[0].overview_path
+directionsDisplay.getDirections().routes[0].legs[0].steps[0].path
+
+mark = function(dots, map) { 
+  var markers = []; 
+  dots.forEach(function(e) { 
+    markers.push(new google.maps.Marker({
+      position: new google.maps.LatLng(e.lat(), e.lng()), 
+      map: map, 
+      draggable: false
+    })); 
+  }); 
+  return markers; 
+};
+
+===============
+Earth radius, R = 6371
+____
+\ r|
+R\a|
+  \|
+  
+Find angle "angle@r" that corresponds to distance "dist" at latitude "lat".
+  
+a[deg] = 90 - abs(lat[deg])
+sin(a) = r / R
+r = sin(a) * R
+
+2*pi*r = circle@r
+angle@r = dist/(2*pi*sin(a) * 6371) * 360
+
