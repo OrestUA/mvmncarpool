@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="sharedHeadContent">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="static/css/normalize.css">
+	<link rel="stylesheet" href="static/css/skeleton.css">
+
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"
+		integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+		crossorigin="anonymous"></script>		
+	<script src="https://maps.googleapis.com/maps/api/js?libraries=places"></script>
+	<script src="static/js/pubsub.js"></script>
+	<script src="static/js/jsrender.min.js"></script>	
+	<title th:text="#{sitename}"></title>
+	<script>
+		function setLocale(locale, csrfToken) {
+			$.post("/locale/" + locale + "?_csrf=" + csrfToken, function() {
+				window.location.reload();
+			});
+		}
+	</script>
+</head>
+</html>

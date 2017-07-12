@@ -1,5 +1,7 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/head :: sharedHeadContent">
+</head>
 <body>
 	<div th:text="${regSuccess}? 'Registration successful' : 'Registration failed'"></div>
 	<div th:if="${alreadyConfirmed}">You have already confirmed your registration</div>

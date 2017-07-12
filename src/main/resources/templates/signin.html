@@ -1,16 +1,6 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-<title th:text="#{sitename}"></title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<script>
-	function setLocale(locale, csrfToken) {
-		var f = document.createElement("form");
-		f.action="/locale/" + locale + "?_csrf=" + csrfToken;
-		f.method="POST"
-		f.submit();
-	}
-</script>
+<head th:include="fragments/head :: sharedHeadContent">
 </head>
 <body>
 	<div>
@@ -22,7 +12,7 @@
 			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 			<input type="text" name="username" />
 			<input type="password" name="password" />
-			<input type="submit" value="login" />
+			<input type="submit" th:value="#{label.login}" />
 		</form>
 	</div>
 	<div>
@@ -32,7 +22,7 @@
 			<input type="text" name="email" />
 			<input type="password" name="password" />
 			<input type="password" name="passwordConfirmation" />
-			<input type="submit" value="register" />
+			<input type="submit" th:value="#{label.register}" />
 		</form>
 	</div>
 </body>
