@@ -1,6 +1,6 @@
-Welcome to [[ #{sitename} ]]
+Welcome to [[ #{sitename} ]], [[ ${user.fullName} ]]
 
 Go register!
 [[ ${confirmationRequestId} ]]
 
-[[ @{${siteBaseUrl+'/confirm_reg'}(email=${user.emailAddress},${confirmationIdParamName}=${confirmationRequestId})} ]]
+[[ @{${siteBaseUrl+'/set_new_password'}(email=${user.emailAddress},${confirmationIdParamName}=${confirmationRequestId},action=register)} ]]

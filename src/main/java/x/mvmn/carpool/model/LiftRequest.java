@@ -59,11 +59,11 @@ public class LiftRequest {
 	}
 
 	@ManyToOne(optional = false)
-	protected User getUser() {
+	public User getUser() {
 		return user;
 	}
 
-	protected void setUser(User user) {
+	public void setUser(User user) {
 		this.user = user;
 	}
 }

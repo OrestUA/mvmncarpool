@@ -26,44 +26,44 @@ public class StoredLocation {
 		this.id = id;
 	}
 
-	protected double getLat() {
+	public double getLat() {
 		return lat;
 	}
 
-	protected void setLat(double lat) {
+	public void setLat(double lat) {
 		this.lat = lat;
 	}
 
-	protected double getLon() {
+	public double getLon() {
 		return lon;
 	}
 
-	protected void setLon(double lon) {
+	public void setLon(double lon) {
 		this.lon = lon;
 	}
 
 	@ManyToOne(optional = false)
-	protected User getUser() {
+	public User getUser() {
 		return user;
 	}
 
-	protected void setUser(User user) {
+	public void setUser(User user) {
 		this.user = user;
 	}
 
-	protected String getName() {
+	public String getName() {
 		return name;
 	}
 
-	protected void setName(String name) {
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	protected String getDescription() {
+	public String getDescription() {
 		return description;
 	}
 
-	protected void setDescription(String description) {
+	public void setDescription(String description) {
 		this.description = description;
 	}
 }

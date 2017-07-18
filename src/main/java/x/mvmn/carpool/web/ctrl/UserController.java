@@ -42,9 +42,6 @@ public class UserController {
 	@Autowired
 	UserConfirmationService userConfirmationService;
 
-	@Value("${mvmncarpool.user.confirmation.required:true}")
-	boolean confirmationRequired;
-
 	@Value("${mvmncarpool.emailregex:^.*@.*$}")
 	String emailRegExPatternStr;
 
@@ -75,7 +72,7 @@ public class UserController {
 	}
 
 	@RequestMapping(path = "/check_email", method = RequestMethod.POST)
-	public @ResponseBody EmailCheckResult checkEmail(@RequestParam("email") String emailAddress) {
+	public @ResponseBody EmailCheckResult checkEmail(@RequestParam(required = false, name = "email") String emailAddress) {
 		if (!isEmailValid(emailAddress)) {
 			return EmailCheckResult.INVALID;
 		}
@@ -86,20 +83,24 @@ public class UserController {
 	}
 
 	@RequestMapping(path = "/reset_password", method = RequestMethod.POST)
-	public @ResponseBody String resetPassword(@Email @RequestParam("email") String emailAddress, Locale locale, HttpServletResponse response) {
-		String result;
+	public @ResponseBody GenericResultDTO resetPassword(@Email @RequestParam(required = false, name = "email") String emailAddress, Locale locale,
+			HttpServletResponse response) {
+		GenericResultDTO result = new GenericResultDTO();
 		User user = userRepository.findByEmailAddress(emailAddress);
 		if (user != null) {
 			try {
 				user.setPasswordResetRequestId(userConfirmationService.sendPasswordResetRequest(user, locale));
 				user.setPasswordResetRequestUnixTime(System.currentTimeMillis() / 1000);
 				userRepository.save(user);
-				result = "Ok";
+				result.message = "Ok";
+				result.success = true;
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		} else {
-			result = "No user.";
+			// TODO: l10n
+			result.message = "No user found for given email address: " + emailAddress;
+			result.success = true;
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		}
 
@@ -107,22 +108,20 @@ public class UserController {
 	}
 
 	@RequestMapping(path = "/register", method = RequestMethod.POST)
-	public @ResponseBody GenericResultDTO doRegister(@Email @RequestParam("email") String emailAddress, @RequestParam("password") String password,
-			@RequestParam("passwordConfirmation") String passwordConfirmation, Locale locale, HttpServletResponse response) {
+	public @ResponseBody GenericResultDTO register(@Email @RequestParam(required = false, name = "email") String emailAddress, Locale locale,
+			HttpServletResponse response) {
 		GenericResultDTO result = new GenericResultDTO();
-		if (isEmailValid(emailAddress) && isEmailAvailable(emailAddress) && password != null && password.equals(passwordConfirmation)
-				&& isPasswordValid(passwordConfirmation).isEmpty()) {
+		EmailCheckResult emailCheckResult = checkEmail(emailAddress);
+		if (emailCheckResult.equals(EmailCheckResult.OK)) {
 			User user = null;
 			try {
 				user = new User();
 				user.setEmailAddress(emailAddress);
-				user.setPassword(passwordEncoder.encode(password));
 				user = userRepository.save(user);
-				if (confirmationRequired) {
-					user.setConfirmationRequestId(userConfirmationService.sendConfirmationRequest(user, locale));
-				} else {
-					user.setConfirmed(true);
-				}
+				userRepository.flush();
+
+				user.setPasswordResetRequestId(userConfirmationService.sendConfirmationRequest(user, locale));
+				user.setPasswordResetRequestUnixTime(-1);
 				userRepository.save(user);
 				result.success = true;
 				result.message = "Ok";
@@ -145,17 +144,33 @@ public class UserController {
 				}
 				throw new RuntimeException(e);
 			}
+			// Use password reset instead
+			// } else if (isEmailValid(emailAddress) && !isEmailAvailable(emailAddress)) {
+			// User existingUser = userRepository.findByEmailAddress(emailAddress);
+			// if (existingUser.getConfirmed() == null || !existingUser.getConfirmed().booleanValue()) {
+			// try {
+			// existingUser.setPassword(passwordEncoder.encode(password));
+			// userRepository.save(existingUser);
+			// userConfirmationService.sendConfirmationRequest(existingUser, locale);
+			// } catch (Exception e) {
+			// // TODO: better handling
+			// throw new RuntimeException(e);
+			// }
+			// }
 		} else {
-			result.message = "Invalid password or passwords don't match";
+			// TODO: l10n
+			result.message = "Email address is " + emailCheckResult.name().toLowerCase();
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 		return result;
 	}
 
 	@RequestMapping(path = "/set_new_password", method = RequestMethod.POST)
-	public GenericResultDTO setNewPassword(@Email @RequestParam("email") String emailAddress,
-			@RequestParam(UserConfirmationService.CONFIRMATION_ID_PARAM_NAME) String confirmationId, @RequestParam("password") String password,
-			@RequestParam("passwordConfirmation") String passwordConfirmation, HttpServletResponse response, Model model) {
+	public GenericResultDTO setNewPassword(@Email @RequestParam(required = false, name = "email") String emailAddress,
+			@RequestParam(required = false, name = UserConfirmationService.CONFIRMATION_ID_PARAM_NAME) String confirmationId,
+			@RequestParam(required = false, name = "password") String password,
+			@RequestParam(required = false, name = "passwordConfirmation") String passwordConfirmation,
+			@RequestParam(required = false, name = "fullName") String fullName, HttpServletResponse response, Model model) {
 		GenericResultDTO result = new GenericResultDTO();
 		User user = userConfirmationService.validatePasswordResetRequest(emailAddress, confirmationId);
 		if (user != null && password != null && password.equals(passwordConfirmation)) {
@@ -164,16 +179,24 @@ public class UserController {
 				user.setPassword(passwordEncoder.encode(password));
 				user.setPasswordResetRequestId(null);
 				user.setPasswordResetRequestUnixTime(0);
+				user.setConfirmed(true);
+				if (fullName != null && !fullName.trim().isEmpty()) {
+					user.setFullName(fullName);
+				}
 				userRepository.save(user);
 				result.success = true;
 				result.message = "ok";
 			} else {
 				// TODO: provide password validation result to UI
+				result.message = passwordValidationResult.iterator().next().name();
 				result.success = false;
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 		} else {
 			// TODO: specific errors
+			result.message = "Wrong user or passwords don't match";
 			result.success = false;
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 		return result;
 	}

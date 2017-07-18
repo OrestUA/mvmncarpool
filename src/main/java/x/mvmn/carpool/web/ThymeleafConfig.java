@@ -24,18 +24,22 @@ public class ThymeleafConfig {
 	@Value("${mvmncarpool.defaultlocale:en_US}")
 	String defaultLocaleLanguageTag;
 
+	@Value("${spring.template.cache:true}")
+	boolean templateCaching;
+
 	@Bean
 	public SpringTemplateEngine thymeleafSpringTemplateEngine(@Autowired MessageSource messageSource) {
 		SpringTemplateEngine templateEngine = new SpringTemplateEngine();
 
-		templateEngine.addTemplateResolver(createTemplateResolver(1, "*.txt", "/templates/", null, TemplateMode.TEXT));
-		templateEngine.addTemplateResolver(createTemplateResolver(2, "*", "/templates/", ".html", TemplateMode.HTML));
+		templateEngine.addTemplateResolver(createTemplateResolver(1, "*.txt", "/templates/", null, TemplateMode.TEXT, templateCaching));
+		templateEngine.addTemplateResolver(createTemplateResolver(2, "*", "/templates/", ".html", TemplateMode.HTML, templateCaching));
 		templateEngine.setTemplateEngineMessageSource(messageSource);
 
 		return templateEngine;
 	}
 
-	public static ITemplateResolver createTemplateResolver(int order, String pathPattern, String prefix, String suffix, TemplateMode templateMode) {
+	public static ITemplateResolver createTemplateResolver(int order, String pathPattern, String prefix, String suffix, TemplateMode templateMode,
+			boolean templateCaching) {
 		final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
 		templateResolver.setOrder(order);
 		templateResolver.setResolvablePatterns(Collections.singleton(pathPattern));
@@ -43,7 +47,7 @@ public class ThymeleafConfig {
 		templateResolver.setSuffix(suffix);
 		templateResolver.setTemplateMode(templateMode);
 		templateResolver.setCharacterEncoding("UTF-8");
-		templateResolver.setCacheable(true);
+		templateResolver.setCacheable(templateCaching);
 		return templateResolver;
 	}
 
@@ -51,6 +55,7 @@ public class ThymeleafConfig {
 	@Scope("singleton")
 	public ExtReloadableResourceBundleMessageSource messageSource() {
 		ExtReloadableResourceBundleMessageSource messageSource = new ExtReloadableResourceBundleMessageSource();
+		messageSource.setCacheMillis(templateCaching ? -1 : 1000);
 		messageSource.setBasename("classpath:/messages/l10n");
 		messageSource.setDefaultEncoding("UTF-8");
 		return messageSource;

@@ -1,0 +1,36 @@
+.siteHeadingRow {
+	background: #d0ffb9;
+	border-radius: 16px;
+	padding: 16px;
+}
+
+button[disabled]:hover, button[disabled], input[type="button"][disabled], input[type="button"][disabled]:hover, input[type="button"].button-primary[disabled], input[type="button"].button-primary[disabled]:hover {
+    background: #ccc;
+    border-color: #ccc;
+    text-shadow: none;
+}
+
+.alertCloseBtnContainer {
+	float: right;	
+}
+
+.popup {
+	min-width: 200px;
+	background-color: rgba(235, 235, 235, 0.9); 
+	border: solid 16px rgba(235, 235, 235, 0.9); 
+	border-radius: 8px;
+}
+
+.waitIndicator {
+	display: none;
+}
+
+.localesList {
+	text-align: right;
+}
+
+.usernameLabel {
+	text-align: right;
+	overflow: hidden;
+	font-size: 10pt;
+}

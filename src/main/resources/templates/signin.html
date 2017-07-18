@@ -3,27 +3,41 @@
 <head th:include="fragments/head :: sharedHeadContent">
 </head>
 <body>
-	<div>
-		<button th:each="localevar:${locales}" th:text="#{${'locale.' + localevar}}" th:onclick="'setLocale(\'' + ${localevar} + '\',\'' + ${_csrf.token} + '\')'"></button>
-	</div>
-	<div>
-		<h4 th:text="#{label.login}"></h4>
-		<form method="post" action="/login">
-			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-			<input type="text" name="username" />
-			<input type="password" name="password" />
-			<input type="submit" th:value="#{label.login}" />
-		</form>
-	</div>
-	<div>
-		<h4 th:text="#{label.register}"></h4>
-		<form method="post" action="/register">
-			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-			<input type="text" name="email" />
-			<input type="password" name="password" />
-			<input type="password" name="passwordConfirmation" />
-			<input type="submit" th:value="#{label.register}" />
-		</form>
+	<div class="container">
+		<div th:replace="fragments/common_heading :: commonHeading"></div>
+		<div class="row">
+			<div class="eight columns">
+				<label for="signinFormEmail">[[ #{label.email} ]]</label>
+				<input class="u-full-width" type="text" id="signinFormEmail" name="email" />
+			</div>
+			<div class="four columns">
+				<label for="btnLogin">&nbsp;</label>
+				<button class="u-full-width button-primary" onclick="doRegister()" id="btnRegister">
+					<span th:text="#{label.register}"></span>
+					<i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
+				</button>
+			</div>
+		</div>
+		<div class="row">
+			<div class="four columns">
+				<label for="signinFormPassword">[[ #{label.password} ]]</label>
+				<input class="u-full-width" type="password" id="signinFormPassword" name="password" />
+			</div>	
+			<div class="four columns">
+				<label for="btnLogin">&nbsp;</label>
+				<button class="u-full-width button-primary" onclick="doLogin()" id="btnLogin">
+					<span th:text="#{label.login}"></span>
+					<i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
+				</button>
+			</div>
+			<div class="four columns">
+				<label for="btnLogin">&nbsp;</label>
+				<button class="u-full-width button-primary" onclick="doResetPassword()" id="btnResetPassword">
+					<span th:text="#{label.reset_password}"></span>
+					<i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
+				</button>
+			</div>
+		</div>
 	</div>
 </body>
 </html>

@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,8 +23,11 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import x.mvmn.carpool.l10n.ExtReloadableResourceBundleMessageSource;
 import x.mvmn.carpool.web.dto.GenericResultDTO;
+import x.mvmn.carpool.web.dto.UserDTO;
+import x.mvmn.carpool.web.security.WebSecurity.UserDetailsAdaptor;
 
 @RestController
+@RequestMapping("/api")
 public class GenericApisController {
 
 	@Autowired
@@ -65,6 +70,12 @@ public class GenericApisController {
 	public @ResponseBody String getCsrfToken(HttpServletRequest request) {
 		CsrfToken token = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
 		return token.getToken();
+	}
+
+	@PreAuthorize("hasRole('ROLE_USER')")
+	@RequestMapping(value = "/userinfo", method = RequestMethod.GET)
+	public @ResponseBody UserDTO getUser(Authentication auth) {
+		return UserDTO.toDTO(((UserDetailsAdaptor) auth.getPrincipal()).getUser());
 	}
 
 	protected Optional<Locale> pickAvailableLocaleByCode(String localeCode) {

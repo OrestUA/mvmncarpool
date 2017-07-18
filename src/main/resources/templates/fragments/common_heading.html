@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div th:fragment="commonHeading">
+		<div class="row">
+			&nbsp;
+			<input type="hidden" id="csrfToken" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+		</div>
+		<div class="row siteHeadingRow">
+			<div class="six columns">
+				<h2 class="u-full-width" th:onclick="'window.location.href=\'' + #{global.baseUrl} + '/\''">[[ #{sitename} ]]</h2>
+			</div>
+			<div class="four columns" th:if="!${currentUser}">&nbsp;</div>
+			<div class="two columns localesList">
+				<div th:each="localevar:${locales}">
+					<a th:if="${localevar} != ${#locale.getLanguage()}" href="#" th:text="#{${'locale.' + localevar}}" th:onclick="'setLocale(\'' + ${localevar} + '\',\'' + ${_csrf.token} + '\')'"></a>
+				</div>
+			</div>
+			<div class="four columns" th:if="${currentUser}">
+				<input type="button" class="u-full-width button-primary" th:value="#{label.logout}" th:onclick="${'javascript:window.location.href='''} + #{global.baseUrl} + ${'/logout'''}" />
+				<div th:text="${currentUser.emailAddress}" class="u-full-width usernameLabel"></div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="row">&nbsp;</div>
+		</div>
+	</div>
+</body>

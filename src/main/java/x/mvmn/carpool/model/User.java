@@ -14,10 +14,10 @@ import javax.persistence.OneToMany;
 public class User {
 
 	protected int id;
+	protected String fullName;
 	protected String emailAddress;
 	protected String password;
 	protected Boolean confirmed;
-	protected String confirmationRequestId;
 	protected String passwordResetRequestId;
 	protected long passwordResetRequestUnixTime;
 	protected List<Route> routes;
@@ -64,14 +64,6 @@ public class User {
 		this.confirmed = confirmed;
 	}
 
-	public String getConfirmationRequestId() {
-		return confirmationRequestId;
-	}
-
-	public void setConfirmationRequestId(String confirmationRequestId) {
-		this.confirmationRequestId = confirmationRequestId;
-	}
-
 	public String getPasswordResetRequestId() {
 		return passwordResetRequestId;
 	}
@@ -89,56 +81,65 @@ public class User {
 	}
 
 	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
-	protected List<Route> getRoutes() {
+	public List<Route> getRoutes() {
 		return routes;
 	}
 
-	protected void setRoutes(List<Route> routes) {
+	public void setRoutes(List<Route> routes) {
 		this.routes = routes;
 	}
 
 	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
-	protected List<LiftRequest> getLiftRequests() {
+	public List<LiftRequest> getLiftRequests() {
 		return liftRequests;
 	}
 
-	protected void setLiftRequests(List<LiftRequest> liftRequests) {
+	public void setLiftRequests(List<LiftRequest> liftRequests) {
 		this.liftRequests = liftRequests;
 	}
 
 	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
-	protected List<LiftOffer> getLiftOffer() {
+	public List<LiftOffer> getLiftOffer() {
 		return liftOffer;
 	}
 
-	protected void setLiftOffer(List<LiftOffer> liftOffer) {
+	public void setLiftOffer(List<LiftOffer> liftOffer) {
 		this.liftOffer = liftOffer;
 	}
 
 	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
-	protected List<LiftJoinRequest> getLiftJoinRequests() {
+	public List<LiftJoinRequest> getLiftJoinRequests() {
 		return liftJoinRequests;
 	}
 
-	protected void setLiftJoinRequests(List<LiftJoinRequest> liftJoinRequests) {
+	public void setLiftJoinRequests(List<LiftJoinRequest> liftJoinRequests) {
 		this.liftJoinRequests = liftJoinRequests;
 	}
 
 	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "owner")
-	protected List<Car> getCars() {
+	public List<Car> getCars() {
 		return cars;
 	}
 
-	protected void setCars(List<Car> cars) {
+	public void setCars(List<Car> cars) {
 		this.cars = cars;
 	}
 
 	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
-	protected List<StoredLocation> getStoredLocations() {
+	public List<StoredLocation> getStoredLocations() {
 		return storedLocations;
 	}
 
-	protected void setStoredLocations(List<StoredLocation> storedLocations) {
+	public void setStoredLocations(List<StoredLocation> storedLocations) {
 		this.storedLocations = storedLocations;
+	}
+
+	@Column(name = "full_name", length = 256)
+	public String getFullName() {
+		return fullName;
+	}
+
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
 	}
 }

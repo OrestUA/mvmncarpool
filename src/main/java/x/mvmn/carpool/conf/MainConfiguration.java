@@ -27,7 +27,7 @@ public class MainConfiguration {
 		}
 		return props;
 	}
-	
+
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder(8);

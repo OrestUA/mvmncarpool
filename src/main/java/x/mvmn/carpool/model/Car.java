@@ -59,11 +59,11 @@ public class Car {
 		this.owner = owner;
 	}
 
-	protected int getPassengerSeats() {
+	public int getPassengerSeats() {
 		return passengerSeats;
 	}
 
-	protected void setPassengerSeats(int passengerSeats) {
+	public void setPassengerSeats(int passengerSeats) {
 		this.passengerSeats = passengerSeats;
 	}
 }

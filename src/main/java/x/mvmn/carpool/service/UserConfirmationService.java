@@ -76,11 +76,6 @@ public class UserConfirmationService {
 		return msgSource.getMessage(subjectMsgCode, new Object[] { localizedSitename }, locale);
 	}
 
-	public User validateConfirmationResponse(String email, String requestId) {
-		User user = userRepository.findByEmailAddress(email);
-		return (user != null && requestId.equals(user.getConfirmationRequestId())) ? user : null;
-	}
-
 	protected Context createContext(Locale locale, User user, String requestId) {
 		return new Context(locale, CollectionsUtil.toHashMap(pair("user", user), pair("confirmationRequestId", requestId),
 				pair("confirmationIdParamName", UserConfirmationService.CONFIRMATION_ID_PARAM_NAME), pair("siteBaseUrl", siteBaseUrl)));
@@ -88,7 +83,9 @@ public class UserConfirmationService {
 
 	public User validatePasswordResetRequest(String emailAddress, String requestId) {
 		User user = userRepository.findByEmailAddress(emailAddress);
-		return (user != null && (System.currentTimeMillis() / 1000 - user.getPasswordResetRequestUnixTime()) < passwordResetRequestValiditySeconds
+		return (user != null
+				&& (user.getPasswordResetRequestUnixTime() == -1
+						|| (System.currentTimeMillis() / 1000 - user.getPasswordResetRequestUnixTime()) < passwordResetRequestValiditySeconds)
 				&& requestId.equals(user.getPasswordResetRequestId())) ? user : null;
 	}
 }

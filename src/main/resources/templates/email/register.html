@@ -1,9 +1,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 	<body>
-		<div>Welcome to [[ #{sitename} ]]</div>
+		<div>Welcome to [[ #{sitename} ]], [[ ${user.fullName} ]]</div>
 		<div>
 			Go <B>register</B>!
-			<a th:href="@{${siteBaseUrl+'/confirm_reg'}(email=${user.emailAddress},${confirmationIdParamName}=${confirmationRequestId})}" th:text="#{mail.confirmation.cofirmlinktext}"></a>
+			<a th:href="@{${siteBaseUrl+'/set_new_password'}(email=${user.emailAddress},${confirmationIdParamName}=${confirmationRequestId},action=register)}" th:text="#{mail.confirmation.cofirmlinktext}"></a>
 		</div>
 	</body>
 </html>

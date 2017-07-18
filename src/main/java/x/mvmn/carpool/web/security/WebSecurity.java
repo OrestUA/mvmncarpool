@@ -1,8 +1,13 @@
 package x.mvmn.carpool.web.security;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -10,11 +15,15 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import x.mvmn.carpool.model.User;
@@ -26,8 +35,29 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).and().formLogin().loginPage("/signin").loginProcessingUrl("/login").and()
-				.csrf().ignoringAntMatchers("/h2db/*").and().headers().frameOptions().sameOrigin();
+		http.logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).and().formLogin().usernameParameter("email").passwordParameter("password")
+				.loginPage("/signin").successHandler(successHandler()).failureHandler(failureHandler()).loginProcessingUrl("/login").and().csrf()
+				.ignoringAntMatchers("/h2db/*").and().headers().frameOptions().sameOrigin();
+	}
+
+	protected AuthenticationFailureHandler failureHandler() {
+		return new AuthenticationFailureHandler() {
+			@Override
+			public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
+					throws IOException, ServletException {
+				response.setStatus(401);
+			}
+		};
+	}
+
+	protected AuthenticationSuccessHandler successHandler() {
+		return new AuthenticationSuccessHandler() {
+			@Override
+			public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+					throws IOException, ServletException {
+				response.setStatus(200);
+			}
+		};
 	}
 
 	@Autowired
@@ -88,6 +118,10 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
 		public boolean isEnabled() {
 			return user.getConfirmed() != null && user.getConfirmed().booleanValue();
+		}
+
+		public User getUser() {
+			return user;
 		}
 	}
 }

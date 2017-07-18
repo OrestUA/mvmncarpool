@@ -3,6 +3,12 @@
 <head th:include="fragments/head :: sharedHeadContent">
 </head>
 <body>
-	<p th:text="'Users: ' + ${userCount}" />
+	<div class="container">
+		<div th:replace="fragments/common_heading :: commonHeading"></div>
+		<div class="row">
+			<div class="four columns">
+			</div>
+		</div>
+	</div>
 </body>
 </html>
