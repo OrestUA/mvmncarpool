@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/head :: sharedHeadContent">
+</head>
+<body>
+	<div class="container">
+		<div th:replace="fragments/common_heading :: commonHeading"></div>
+		<div class="row">
+			<div class="four columns">
+				<label for="profileFullName">[[ #{label.fullName} ]]</label>
+				<input class="u-full-width" type="text" name="fullName" th:value="${currentUser.fullName}" id="profileFullName" />
+			</div>
+			<div class="four columns">
+				<label>&nbsp;</label>
+				<button class="u-full-width button-primary" th:onclick="${'doUpdateProfile()'}" id="btnUpdateProfile">
+					<span th:text="#{label.save}"></span> <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
+				</button>
+			</div>			
+			<div class="four columns">
+				<label>&nbsp;</label>
+				<button class="u-full-width button-primary" th:onclick="${'doResetPassword('''} + ${currentUser.emailAddress} + ${''')'}" id="btnResetPassword">
+					<span th:text="#{label.reset_password}"></span> <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

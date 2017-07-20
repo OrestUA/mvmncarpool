@@ -12,12 +12,12 @@ var exclamationSign = '<i class="fa fa-exclamation-circle" aria-hidden="true"></
 function showPopup(content) {
 	var popupId = 'popup_' + (popupIndexCounter++);
 	
-	// TODO/FIXME: localize close button, use jsrender templates
+	// TODO: use jsrender templates
 	var popup = $(
 			'<div id="' + popupId + '" class="popup">'
 			+'<div class="container"><div class="row"><div class="twelve columns">' + content + '</div></div>'
 			+'<div class="row">&nbsp;</div><div class="row"><div class="twelve columns">'
-			+'<input type="button" class="'+popupId+'_close u-full-width" value="close" /></div></div></div>'
+			+'<input type="button" class="'+popupId+'_close u-full-width" value="' + window.l10n['label.close'] + '" /></div></div></div>'
 		);
 	$("body").append(popup);
 	popup.popup({
@@ -48,8 +48,8 @@ function doLogin() {
 	}).fail(function() {
 		operationButtonSetState("btnLogin", false);
 		clearField("signinFormPassword");
-		// FIXME: l10n
-		showPopup(exclamationSign + " Invalid username or password");
+
+		showPopup(exclamationSign + " " + window.l10n['error.bad_username_or_password']);
 	});
 }
 
@@ -66,20 +66,27 @@ function doRegister() {
 		operationButtonSetState("btnRegister", false);
 
 		clearField("signinFormEmail");
+		
+		showPopup(window.l10n['message.register_send_success']);
 	}).fail(function() {
 		console.log("Failure");
 		console.log(arguments);
 		operationButtonSetState("btnRegister", false);
+		
 		showPopup(exclamationSign + " " + arguments[0].responseJSON.message);
 	});
 }
 
-function doResetPassword() {
+function doResetPassword(emailOverride) {
 	operationButtonSetState("btnResetPassword", true);
 
 	var data = {};
 	fillField("csrfToken", data);
-	fillField("signinFormEmail", data);
+	if(emailOverride) {
+		data['email'] = emailOverride;
+	} else {
+		fillField("signinFormEmail", data);
+	}
 
 	$.post(siteBaseUrl + "/reset_password", data, function() {
 		console.log("Success");
@@ -87,10 +94,13 @@ function doResetPassword() {
 		operationButtonSetState("btnResetPassword", false);
 
 		clearField("signinFormEmail");
+		
+		showPopup(window.l10n['message.message.password_reset_send_success']);
 	}).fail(function() {
 		console.log("Failure");
 		console.log(arguments);
 		operationButtonSetState("btnResetPassword", false);
+		
 		showPopup(exclamationSign + " " + arguments[0].responseJSON.message);
 	});
 }
@@ -116,12 +126,45 @@ function doSetNewPassword() {
 		console.log("Failure");
 		console.log(arguments);
 		operationButtonSetState("btnSetNewPassword", false);
+		
 		showPopup(exclamationSign + " " + arguments[0].responseJSON.message);
 	});
 }
 
+function doUpdateProfile() {
+	operationButtonSetState("btnUpdateProfile", true);
+
+	var userDto = {};
+	fillField('profileFullName', userDto);
+	
+	var headers = {}
+	headers[	window.csrfHeaderName] = $("#csrfToken").val();
+
+	$.ajax({
+		method : 'POST',
+		url : siteBaseUrl + "/api/user/update",
+		headers : headers,
+		data : userDto,
+		success : function() {
+			console.log("Success");
+			console.log(arguments);
+			operationButtonSetState("btnUpdateProfile", false);
+		},
+		error : function() {
+			console.log("Failure");
+			console.log(arguments);
+			operationButtonSetState("btnUpdateProfile", false);
+
+			showPopup(exclamationSign + " "
+					+ arguments[0].responseJSON.message);
+		}
+	});
+}
+
 function clearField(fieldId) {
-	$("#" + fieldId).val('')
+	if($("#" + fieldId)) {
+		$("#" + fieldId).val('')
+	}
 }
 
 function fillField(fieldId, object) {
@@ -131,11 +174,13 @@ function fillField(fieldId, object) {
 }
 
 function operationButtonSetState(buttonId, state) {
-	if(state) {
-		$("#"+buttonId).attr("disabled", "disabled");
-		$("#"+buttonId+" .waitIndicator").css('display', 'inline-block');
-	} else {
-		$("#"+buttonId+" .waitIndicator").css('display', 'none');
-		$("#"+buttonId).removeAttr("disabled");
+	if($("#"+buttonId)) {
+		if(state) {
+			$("#"+buttonId).attr("disabled", "disabled");
+			$("#"+buttonId+" .waitIndicator").css('display', 'inline-block');
+		} else {
+			$("#"+buttonId+" .waitIndicator").css('display', 'none');
+			$("#"+buttonId).removeAttr("disabled");
+		}
 	}
 }

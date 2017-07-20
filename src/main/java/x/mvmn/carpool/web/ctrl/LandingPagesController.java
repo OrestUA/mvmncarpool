@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.hibernate.validator.constraints.Email;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -19,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import x.mvmn.carpool.model.User;
 import x.mvmn.carpool.service.UserConfirmationService;
 import x.mvmn.carpool.service.persistence.UserRepository;
-import x.mvmn.carpool.web.security.WebSecurity.UserDetailsAdaptor;
+import x.mvmn.util.web.auth.UserUtil;
 
 @Controller
 public class LandingPagesController {
@@ -30,27 +29,32 @@ public class LandingPagesController {
 	@Value("${mvmncarpool.locales}")
 	String availableLocales;
 
-	@Autowired
-	UserConfirmationService userConfirmationService;
+	@Value("${mvmncarpool.baseurl}")
+	String baseUrl;
 
 	@Autowired
-	MessageSource msgSource;
+	UserConfirmationService userConfirmationService;
 
 	@RequestMapping(path = "/", method = RequestMethod.GET)
 	@PreAuthorize("hasRole('ROLE_USER')")
 	public String index(Model model, Authentication auth) {
-		model.addAttribute("currentUser", getPrincipal(auth).getUser());
-		model.addAttribute("locales", getAvailableLocales());
+		populateCommonModelData(model, auth);
 		return "index";
+	}
+
+	@RequestMapping(path = "/profile", method = RequestMethod.GET)
+	@PreAuthorize("hasRole('ROLE_USER')")
+	public String profilePage(Model model, Authentication auth) {
+		populateCommonModelData(model, auth);
+		return "profile";
 	}
 
 	@RequestMapping(path = "/signin", method = RequestMethod.GET)
 	public String showSignin(Model model, Authentication auth, Locale locale) {
 		if (auth != null && auth.getPrincipal() != null) {
-			String baseUrl = msgSource.getMessage("global.baseUrl", null, locale);
 			return "redirect:" + baseUrl + "/";
 		} else {
-			model.addAttribute("locales", getAvailableLocales());
+			populateCommonModelData(model, auth);
 			return "signin";
 		}
 	}
@@ -61,11 +65,11 @@ public class LandingPagesController {
 			@RequestParam(name = "action", required = false) String action, HttpServletResponse response, Model model) {
 		User user = userConfirmationService.validatePasswordResetRequest(emailAddress, confirmationId);
 		model.addAttribute("requestValid", user != null);
-		model.addAttribute("user", user);
 		model.addAttribute("confirmationIdParamName", UserConfirmationService.CONFIRMATION_ID_PARAM_NAME);
 		model.addAttribute("confirmationId", confirmationId);
 		model.addAttribute("registerAction", "register".equalsIgnoreCase(action));
-		model.addAttribute("locales", getAvailableLocales());
+		populateCommonModelData(model, null);
+		model.addAttribute("user", user);
 		return "new_password";
 	}
 
@@ -73,7 +77,9 @@ public class LandingPagesController {
 		return availableLocales.split("\\s*,\\s*");
 	}
 
-	protected UserDetailsAdaptor getPrincipal(Authentication auth) {
-		return (UserDetailsAdaptor) auth.getPrincipal();
+	protected void populateCommonModelData(Model model, Authentication auth) {
+		model.addAttribute("currentUser", UserUtil.getCurrentUser(auth));
+		model.addAttribute("locales", getAvailableLocales());
+		model.addAttribute("global_baseUrl", baseUrl);
 	}
 }

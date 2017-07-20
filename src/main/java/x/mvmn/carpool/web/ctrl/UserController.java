@@ -11,7 +11,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.hibernate.validator.constraints.Email;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +30,8 @@ import x.mvmn.carpool.model.User;
 import x.mvmn.carpool.service.UserConfirmationService;
 import x.mvmn.carpool.service.persistence.UserRepository;
 import x.mvmn.carpool.web.dto.GenericResultDTO;
+import x.mvmn.carpool.web.dto.UserDTO;
+import x.mvmn.util.web.auth.UserUtil;
 
 @RestController
 public class UserController {
@@ -53,6 +58,9 @@ public class UserController {
 
 	@Value("${mvmncarpool.password_policy.regex:^.*$}")
 	String passwordRegExPatternStr;
+
+	@Autowired
+	MessageSource msgSource;
 
 	protected Pattern emailRegEx;
 	protected Pattern passwordRegEx;
@@ -98,8 +106,7 @@ public class UserController {
 				throw new RuntimeException(e);
 			}
 		} else {
-			// TODO: l10n
-			result.message = "No user found for given email address: " + emailAddress;
+			result.message = msgSource.getMessage("error.user_not_found_for_email", new Object[] { emailAddress }, locale);
 			result.success = true;
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		}
@@ -153,15 +160,25 @@ public class UserController {
 			// userRepository.save(existingUser);
 			// userConfirmationService.sendConfirmationRequest(existingUser, locale);
 			// } catch (Exception e) {
-			// // TODO: better handling
 			// throw new RuntimeException(e);
 			// }
 			// }
 		} else {
-			// TODO: l10n
-			result.message = "Email address is " + emailCheckResult.name().toLowerCase();
+			result.message = msgSource.getMessage("error.email." + emailCheckResult.name().toLowerCase(), new Object[0], locale);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
+		return result;
+	}
+
+	@RequestMapping(path = "/api/user/update", method = RequestMethod.POST)
+	@PreAuthorize("hasRole('ROLE_USER')")
+	public GenericResultDTO updateUser(UserDTO userDto, Authentication auth) {
+		GenericResultDTO result = new GenericResultDTO();
+
+		User user = UserUtil.getCurrentUser(auth);
+		user.setFullName(userDto.getFullName());
+		userRepository.save(user);
+
 		return result;
 	}
 

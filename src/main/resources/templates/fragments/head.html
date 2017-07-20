@@ -2,7 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="sharedHeadContent">
 	<script type="text/javascript">
-		window.siteBaseUrl = '[[ #{global.baseUrl} ]]';
+		window.siteBaseUrl = '[[ ${global_baseUrl} ]]';
+		window.csrfHeaderName = '[[ ${_csrf.headerName} ]]'
 	</script>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,6 +16,11 @@
 	<script src="https://code.jquery.com/jquery-3.2.1.min.js"
 		integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
 		crossorigin="anonymous"></script>
+	<script type="text/javascript">
+		$.get(window.siteBaseUrl+"/api/l10n", {}, function(l10n) {
+			window.l10n = l10n;
+		});
+	</script>
 	<script src="https://maps.googleapis.com/maps/api/js?libraries=places"></script>
 	<script src="static/js/pubsub.js"></script>
 	<script src="static/js/jsrender.min.js"></script>

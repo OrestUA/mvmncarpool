@@ -1,6 +1,6 @@
-Welcome to [[ #{sitename} ]], [[ ${user.fullName} ]]
+[[ #{label.welcome_to(#{sitename})} ]]
 
-Go register!
-[[ ${confirmationRequestId} ]]
+[[ #{label.complete_registration(${user.emailAddress})} ]]
 
+[[#{mail.confirmation.cofirmlinktext}]]:
 [[ @{${siteBaseUrl+'/set_new_password'}(email=${user.emailAddress},${confirmationIdParamName}=${confirmationRequestId},action=register)} ]]
