@@ -10,21 +10,20 @@ function setLocale(locale, csrfToken) {
 var exclamationSign = '<i class="fa fa-exclamation-circle" aria-hidden="true"></i>';
 
 function showPopup(content) {
-	var popupId = 'popup_' + (popupIndexCounter++);
-	
-	// TODO: use jsrender templates
-	var popup = $(
-			'<div id="' + popupId + '" class="popup">'
-			+'<div class="container"><div class="row"><div class="twelve columns">' + content + '</div></div>'
-			+'<div class="row">&nbsp;</div><div class="row"><div class="twelve columns">'
-			+'<input type="button" class="'+popupId+'_close u-full-width" value="' + window.l10n['label.close'] + '" /></div></div></div>'
-		);
+	var popupId = 'popup_' + (popupIndexCounter++);	
+	var template = $.templates("#popupTempalte");
+	var popup = $(template.render({popupId: popupId, content: content, closeButtonLabel: window.l10n['label.close'] }));
+
 	$("body").append(popup);
 	popup.popup({
 		background : false,
 		transition : 'all 0.3s',
 		detach : true,
-		autoopen : true
+		autoopen : true,
+		onclose: function() { setTimeout(function() {
+			// Workaround for leftover wrappers
+			$("#"+popupId+"_wrapper").remove();
+		}, 3000); }
 	});
 }
 
