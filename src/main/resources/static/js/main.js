@@ -95,7 +95,7 @@ function doRegister() {
 	handleForm("/register", "btnRegister", 
 		[ { id:"signinFormEmail", clear: { success:true } } ],  
 		function() { showPopup(window.l10n['message.register_send_success']); }, 
-		function() { showPopup(exclamationSign + " " + arguments[0].responseJSON.message); }
+		function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); }
 	);
 }
 
@@ -103,7 +103,7 @@ function doResetPassword() {
 	handleForm("/reset_password", "btnResetPassword", 
 		[ { id:"signinFormEmail", clear: { success:true } } ],  
 		function() { showPopup(window.l10n['message.password_reset_send_success']); }, 
-		function() { showPopup(exclamationSign + " " + arguments[0].responseJSON.message); }
+		function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); }
 	);
 }
 
@@ -111,7 +111,7 @@ function doSetNewPassword() {
 	handleForm("/set_new_password", "btnSetNewPassword", 
 		[ { id:"resetPwdConfirmationId" }, { id:"resetPwdEmail" }, { id:"resetPwdPassword" }, { id:"resetPwdPasswordConfirmation" }, { id:"resetPwdFullName" } ],  
 		function() { window.location.href = window.siteBaseUrl + '/'; }, 
-		function() { showPopup(exclamationSign + " " + arguments[0].responseJSON.message); }
+		function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); }
 	);
 }
 
@@ -119,7 +119,7 @@ function doUpdateProfile() {
 	handleForm("/api/user/update", "btnUpdateProfile", 
 		[ { id:"profileFullName" } ],  
 		null, 
-		function() { showPopup(exclamationSign + " " + arguments[0].responseJSON.message); },
+		function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); },
 		true
 	);
 }
