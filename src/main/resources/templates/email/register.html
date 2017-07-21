@@ -3,6 +3,7 @@
 		<div>[[ #{label.welcome_to(#{sitename})} ]]</div>
 		<div>&nbsp;</div>
 		<div>[[ #{label.complete_registration(${user.emailAddress})} ]]</div>
+		<div>&nbsp;</div>
 		<div>
 			<a th:href="@{${siteBaseUrl+'/set_new_password'}(email=${user.emailAddress},${confirmationIdParamName}=${confirmationRequestId},action=register)}" th:text="#{mail.confirmation.cofirmlinktext}"></a>
 		</div>

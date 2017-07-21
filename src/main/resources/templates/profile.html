@@ -12,13 +12,13 @@
 			</div>
 			<div class="four columns">
 				<label>&nbsp;</label>
-				<button class="u-full-width button-primary" th:onclick="${'doUpdateProfile()'}" id="btnUpdateProfile">
+				<button class="u-full-width button-primary" onclick="doUpdateProfile()" id="btnUpdateProfile">
 					<span th:text="#{label.save}"></span> <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
 				</button>
 			</div>			
 			<div class="four columns">
 				<label>&nbsp;</label>
-				<button class="u-full-width button-primary" th:onclick="${'doResetPassword('''} + ${currentUser.emailAddress} + ${''')'}" id="btnResetPassword">
+				<button class="u-full-width button-primary" onclick="doResetPassword()" id="btnResetPassword">
 					<span th:text="#{label.reset_password}"></span> <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
 				</button>
 			</div>

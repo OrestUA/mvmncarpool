@@ -29,7 +29,7 @@ button[disabled]:hover, button[disabled], input[type="button"][disabled], input[
 	text-align: right;
 }
 
-.usernameLabel {
+.smallerLabel {
 	text-align: right;
 	overflow: hidden;
 	font-size: 10pt;

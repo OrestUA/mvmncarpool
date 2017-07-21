@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -91,10 +92,10 @@ public class UserController {
 	}
 
 	@RequestMapping(path = "/reset_password", method = RequestMethod.POST)
-	public @ResponseBody GenericResultDTO resetPassword(@Email @RequestParam(required = false, name = "email") String emailAddress, Locale locale,
-			HttpServletResponse response) {
+	public @ResponseBody GenericResultDTO resetPassword(@Email @RequestParam(required = false, name = "email") String emailAddress, Authentication auth,
+			Locale locale, HttpServletResponse response) {
 		GenericResultDTO result = new GenericResultDTO();
-		User user = userRepository.findByEmailAddress(emailAddress);
+		User user = emailAddress != null && emailAddress.trim().isEmpty() ? userRepository.findByEmailAddress(emailAddress) : UserUtil.getCurrentUser(auth);
 		if (user != null) {
 			try {
 				user.setPasswordResetRequestId(userConfirmationService.sendPasswordResetRequest(user, locale));
@@ -172,7 +173,7 @@ public class UserController {
 
 	@RequestMapping(path = "/api/user/update", method = RequestMethod.POST)
 	@PreAuthorize("hasRole('ROLE_USER')")
-	public GenericResultDTO updateUser(UserDTO userDto, Authentication auth) {
+	public GenericResultDTO updateUser(@RequestBody UserDTO userDto, Authentication auth) {
 		GenericResultDTO result = new GenericResultDTO();
 
 		User user = UserUtil.getCurrentUser(auth);
