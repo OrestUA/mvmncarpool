@@ -10,7 +10,7 @@
 				<label for="signinFormEmail">[[ #{label.email} ]]</label>
 				&nbsp;
 				<span id="signinFormEmail_validation" class="validationMessage"></span>
-				<input class="u-full-width" type="text" id="signinFormEmail" name="email" onkeyup="validateField(this.id, [validateNotEmpty], ['signInForm', 'signUpForm', 'resetPasswordForm'])" />
+				<input class="u-full-width" type="text" id="signinFormEmail" name="email" onkeyup="validateField(this.id, [validateNotEmpty, validateEmail], ['signInForm', 'signUpForm', 'resetPasswordForm'])" />
 			</div>
 			<div class="four columns">
 				<label>&nbsp;</label>

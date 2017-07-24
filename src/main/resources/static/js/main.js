@@ -1,10 +1,7 @@
 var popupIndexCounter = 1;
 
-function setLocale(locale, csrfToken) {
-	$.post(siteBaseUrl + "/api/locale/" + locale + "?_csrf=" + csrfToken,
-			function() {
-				window.location.reload();
-			});
+function setLocale(locale) {
+	$.post(siteBaseUrl + "/api/locale/" + locale + "?_csrf=" + window.csrfToken, function() { window.location.reload(); });
 }
 
 var exclamationSign = '<i class="fa fa-exclamation-circle" aria-hidden="true"></i>';
@@ -40,7 +37,7 @@ function handleForm(url, formId, fields, success, failure, json) {
 	}
 
 	var headers = {};
-	headers[	window.csrfHeaderName] = $("#csrfToken").val();
+	headers[	window.csrfHeaderName] = window.csrfToken;
 	
 	if(json) {
 		data = JSON.stringify(data);
@@ -92,11 +89,22 @@ function doLogin() {
 }
 
 function doRegister() {
-	handleForm("/register", "signUpForm", 
-		[ { id:"signinFormEmail", clear: { success:true } } ],  
-		function() { showPopup(window.l10n['message.register_send_success']); }, 
-		function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); }
-	);
+	var sendData = { email: $('#signinFormEmail').val() };
+	sendData[window.csrfParameterName] = window.csrfToken;
+	$.post(window.siteBaseUrl + '/check_email', sendData, function(data) {
+		if(data) {
+			data = data.toLowerCase();
+		}
+		if(data == 'ok') {
+			handleForm("/register", "signUpForm", 
+				[ { id:"signinFormEmail", clear: { success:true } } ],  
+				function() { showPopup(window.l10n['message.register_send_success']); }, 
+				function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); }
+			);
+		} else {
+			showPopup(exclamationSign + " " + window.l10n['error.email.' + data]);
+		}
+	});
 }
 
 function doResetPassword() {
@@ -116,7 +124,7 @@ function doSetNewPassword() {
 }
 
 function doUpdateProfile() {
-	handleForm("/api/user/update", "btnUpdateProfile", 
+	handleForm("/api/user/update", "profileUpdateForm", 
 		[ { id:"profileFullName" } ],  
 		null, 
 		function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); },
@@ -160,6 +168,16 @@ function validateNotEmpty(value) {
 	return value && $.trim(value).length > 0 ? null : window.l10n['error.cannot_be_empty'];
 }
 
+function validateEmail(value) {
+	return /^[a-zA-Z0-9.\!\#$%&’*+/\=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(value) ? null : window.l10n['error.email.invalid'];
+}
+
+function fnValidateMatches(checkFieldId, localizationKey) {
+	return function(value) {
+		return value == $("#" + checkFieldId).val() ? null : window.l10n[localizationKey];
+	}
+}
+
 var formInvalidFields = {};
 
 function validateField(fieldId, validations, formIds) {
@@ -182,6 +200,7 @@ function validateField(fieldId, validations, formIds) {
 			var validationMessage = validations[idx].apply(null, [value]);
 			if(validationMessage && validationMessage.length > 0) {
 				validationMessages.push(validationMessage);
+				break;
 			}
 		}
 		if(validationMessages.length > 0) {

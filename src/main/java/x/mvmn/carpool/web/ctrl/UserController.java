@@ -226,7 +226,7 @@ public class UserController {
 
 	protected boolean isEmailValid(String email) {
 		// TODO: move to service/helper
-		return emailRegEx.matcher(email).matches();
+		return email != null && emailRegEx.matcher(email).matches();
 	}
 
 	protected Set<PasswordInvalidityCause> isPasswordValid(String password) {

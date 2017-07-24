@@ -3,7 +3,9 @@
 <head th:fragment="sharedHeadContent">
 	<script type="text/javascript">
 		window.siteBaseUrl = '[[ ${global_baseUrl} ]]';
-		window.csrfHeaderName = '[[ ${_csrf.headerName} ]]'
+		window.csrfHeaderName = '[[ ${_csrf.headerName} ]]';
+		window.csrfParameterName = '[[ ${_csrf.parameterName} ]]';
+		window.csrfToken = '[[ ${_csrf.token} ]]';
 	</script>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,8 +19,12 @@
 		integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
 		crossorigin="anonymous"></script>
 	<script type="text/javascript">
-		$.get(window.siteBaseUrl+"/api/l10n", {}, function(l10n) {
-			window.l10n = l10n;
+		$(document).ready(function () {
+			$.get(window.siteBaseUrl+"/api/l10n", {}, function(l10n) {
+				window.l10n = l10n;
+
+				$('input').keyup();
+			});
 		});
 	</script>
 	<script src="https://maps.googleapis.com/maps/api/js?libraries=places"></script>

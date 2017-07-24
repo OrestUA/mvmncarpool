@@ -15,7 +15,6 @@
 				</div>
 			</div>
 		</script>
-		<input type="hidden" id="csrfToken" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 		<div class="row">&nbsp;</div>
 		<div class="row siteHeadingRow">
 			<div class="six columns">
@@ -25,7 +24,7 @@
 			<div class="four columns" th:if="!${currentUser}">&nbsp;</div>
 			<div class="two columns localesList">
 				<div th:each="localevar:${locales}">
-					<a th:if="${localevar} != ${#locale.getLanguage()}" href="#" th:text="#{${'locale.' + localevar}}" th:onclick="'setLocale(\'' + ${localevar} + '\',\'' + ${_csrf.token} + '\')'"></a>
+					<a th:if="${localevar} != ${#locale.getLanguage()}" href="#" th:text="#{${'locale.' + localevar}}" th:onclick="'setLocale(\'' + ${localevar} + '\')'"></a>
 				</div>
 			</div>
 			<div class="four columns" th:if="${currentUser}">
