@@ -24,7 +24,9 @@ public class ExtReloadableResourceBundleMessageSource extends ReloadableResource
 					PropertiesHolder propHolder = getProperties(filename);
 					if (propHolder.getProperties() != null) {
 						for (Object key : propHolder.getProperties().keySet()) {
-							result.put(key.toString(), propHolder.getProperty(key.toString()));
+							if (!result.containsKey(key.toString())) {
+								result.put(key.toString(), propHolder.getProperty(key.toString()));
+							}
 						}
 					}
 				}
