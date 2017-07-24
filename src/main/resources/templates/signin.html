@@ -8,11 +8,13 @@
 		<div class="row">
 			<div class="eight columns">
 				<label for="signinFormEmail">[[ #{label.email} ]]</label>
-				<input class="u-full-width" type="text" id="signinFormEmail" name="email" />
+				&nbsp;
+				<span id="signinFormEmail_validation" class="validationMessage"></span>
+				<input class="u-full-width" type="text" id="signinFormEmail" name="email" onkeyup="validateField(this.id, [validateNotEmpty], ['signInForm', 'signUpForm', 'resetPasswordForm'])" />
 			</div>
 			<div class="four columns">
 				<label>&nbsp;</label>
-				<button class="u-full-width button-primary" onclick="doRegister()" id="btnRegister">
+				<button class="u-full-width button-primary" onclick="doRegister()" id="signUpForm_submit">
 					<span th:text="#{label.register}"></span>
 					<i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
 				</button>
@@ -21,18 +23,20 @@
 		<div class="row">
 			<div class="four columns">
 				<label for="signinFormPassword">[[ #{label.password} ]]</label>
-				<input class="u-full-width" type="password" id="signinFormPassword" name="password" />
+				&nbsp;
+				<span id="signinFormPassword_validation" class="validationMessage"></span>
+				<input class="u-full-width" type="password" id="signinFormPassword" name="password" onkeyup="validateField(this.id, [validateNotEmpty], ['signInForm'])" />
 			</div>	
 			<div class="four columns">
 				<label>&nbsp;</label>
-				<button class="u-full-width button-primary" onclick="doLogin()" id="btnLogin">
+				<button class="u-full-width button-primary" onclick="doLogin()" id="signInForm_submit">
 					<span th:text="#{label.login}"></span>
 					<i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
 				</button>
 			</div>
 			<div class="four columns">
 				<label>&nbsp;</label>
-				<button class="u-full-width button-primary" onclick="doResetPassword()" id="btnResetPassword">
+				<button class="u-full-width button-primary" onclick="doResetPassword()" id="resetPasswordForm_submit">
 					<span th:text="#{label.reset_password}"></span>
 					<i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
 				</button>

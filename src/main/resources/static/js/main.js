@@ -29,8 +29,8 @@ function showPopup(content) {
 	});
 }
 
-function handleForm(url, submitButtonId, fields, success, failure, json) {
-	operationButtonSetState(submitButtonId, true);
+function handleForm(url, formId, fields, success, failure, json) {
+	updateFormSubmitButton(formId, true);
 
 	var data = {};
 	if(fields) {
@@ -52,7 +52,7 @@ function handleForm(url, submitButtonId, fields, success, failure, json) {
 		headers : headers,
 		data : data,
 		success : function() {
-			operationButtonSetState(submitButtonId, false);
+			updateFormSubmitButton(formId, false);
 	
 			for(var idx in fields) {
 				if(fields[idx].clear && fields[idx].clear.success) {
@@ -65,7 +65,7 @@ function handleForm(url, submitButtonId, fields, success, failure, json) {
 			}
 		},
 		error: function() {
-			operationButtonSetState(submitButtonId, false);
+			updateFormSubmitButton(formId, false);
 	
 			for(var idx in fields) {
 				if(fields[idx].clear && fields[idx].clear.failure) {
@@ -81,7 +81,7 @@ function handleForm(url, submitButtonId, fields, success, failure, json) {
 }
 
 function doLogin() {
-	handleForm("/login", "btnLogin", 
+	handleForm("/login", "signInForm", 
 		[ 
 			{ id:"signinFormEmail", clear: { success:true } },
 			{ id:"signinFormPassword", clear: { success:true, failure: true } }
@@ -92,7 +92,7 @@ function doLogin() {
 }
 
 function doRegister() {
-	handleForm("/register", "btnRegister", 
+	handleForm("/register", "signUpForm", 
 		[ { id:"signinFormEmail", clear: { success:true } } ],  
 		function() { showPopup(window.l10n['message.register_send_success']); }, 
 		function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); }
@@ -100,7 +100,7 @@ function doRegister() {
 }
 
 function doResetPassword() {
-	handleForm("/reset_password", "btnResetPassword", 
+	handleForm("/reset_password", "resetPasswordForm", 
 		[ { id:"signinFormEmail", clear: { success:true } } ],  
 		function() { showPopup(window.l10n['message.password_reset_send_success']); }, 
 		function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); }
@@ -126,7 +126,7 @@ function doUpdateProfile() {
 
 function clearField(fieldId) {
 	if($("#" + fieldId).length) {
-		$("#" + fieldId).val('')
+		$("#" + fieldId).val('');
 	}
 }
 
@@ -136,14 +136,68 @@ function fillField(fieldId, object) {
 	}
 }
 
-function operationButtonSetState(buttonId, state) {
+function updateFormSubmitButton(formId, submissionInProgress) {
+	var hasInvalidFields = formInvalidFields[formId] && formInvalidFields[formId].length > 0; 
+	formSubmitBtnSetState(formId + "_submit", submissionInProgress || hasInvalidFields, submissionInProgress);
+}
+
+function formSubmitBtnSetState(buttonId, disabled, inProgress) {
 	if($("#"+buttonId).length) {
-		if(state) {
+		if(disabled || inProgress) {
 			$("#"+buttonId).attr("disabled", "disabled");
+		} else {
+			$("#"+buttonId).removeAttr("disabled");
+		}
+		if(inProgress) {
 			$("#"+buttonId+" .waitIndicator").css('display', 'inline-block');
 		} else {
 			$("#"+buttonId+" .waitIndicator").css('display', 'none');
-			$("#"+buttonId).removeAttr("disabled");
+		}
+	}
+}
+
+function validateNotEmpty(value) {
+	return value && $.trim(value).length > 0 ? null : window.l10n['error.cannot_be_empty'];
+}
+
+var formInvalidFields = {};
+
+function validateField(fieldId, validations, formIds) {
+	if(validations && validations.length > 0 && $("#" + fieldId).length > 0) {
+		for(var fidx in formIds) {
+			var formFieldValidities = formInvalidFields[formIds[fidx]];
+			if(!formFieldValidities) {
+				formFieldValidities = []
+				formInvalidFields[formIds[fidx]] = formFieldValidities;
+			}
+			var ffvIdx = formFieldValidities.indexOf(fieldId);
+			if(ffvIdx >= 0) {
+				formFieldValidities.splice(ffvIdx, 1);
+			}		
+		}
+		
+		var value = $("#" + fieldId).val();
+		var validationMessages = [];
+		for(var idx in validations) {
+			var validationMessage = validations[idx].apply(null, [value]);
+			if(validationMessage && validationMessage.length > 0) {
+				validationMessages.push(validationMessage);
+			}
+		}
+		if(validationMessages.length > 0) {
+			var msg = validationMessages.join(", ")+".";
+			$("#" + fieldId + "_validation").text(msg);
+			$("#" + fieldId + "_validation").css('display', 'inline-block');
+			
+			for(var fidx in formIds) {
+				formInvalidFields[formIds[fidx]].push(fieldId);
+			}			
+		} else {
+			$("#" + fieldId + "_validation").css('display', 'none');
+		}
+		
+		for(var fidx in formIds) {
+			updateFormSubmitButton(formIds[fidx]);
 		}
 	}
 }

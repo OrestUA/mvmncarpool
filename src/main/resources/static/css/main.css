@@ -34,3 +34,12 @@ button[disabled]:hover, button[disabled], input[type="button"][disabled], input[
 	overflow: hidden;
 	font-size: 10pt;
 }
+
+label {
+	display: inline-block;
+}
+
+.validationMessage {
+	font-size: 10px;
+	color: red;
+}
