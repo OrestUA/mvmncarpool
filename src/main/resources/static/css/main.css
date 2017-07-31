@@ -43,3 +43,16 @@ label {
 	font-size: 10px;
 	color: red;
 }
+
+table input, table button {
+	margin-bottom: 0;
+	
+}
+
+table td {
+	padding: 12px 8px;
+}
+
+table button {
+	padding: 0 14px;
+}

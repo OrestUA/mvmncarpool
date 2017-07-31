@@ -4,8 +4,6 @@ function setLocale(locale) {
 	$.post(window.carpoolApp.siteBaseUrl + "/api/locale/" + locale + "?_csrf=" + window.carpoolApp.csrfToken, function() { window.location.reload(); });
 }
 
-var exclamationSign = '<i class="fa fa-exclamation-circle" aria-hidden="true"></i>';
-
 function showPopup(content) {
 	var popupId = 'popup_' + (popupIndexCounter++);	
 	var template = $.templates("#popupTempalte");
@@ -25,6 +23,49 @@ function showPopup(content) {
 		}
 	});
 }
+
+function showConfirmation(content, noLabel, yesLabel, callback) {
+	var popupId = 'popup_' + (popupIndexCounter++);	
+	var template = $.templates("#confirmDialogTempalte");
+	var popup = $(template.render({popupId: popupId, content: content, noButtonLabel: window.carpoolApp.l10n[noLabel], yesButtonLabel: window.carpoolApp.l10n[yesLabel] }));
+	
+	$(popup).find(".confirmButton").click(callback);
+
+	$("body").append(popup);
+	popup.popup({
+		background : false,
+		transition : 'all 0.3s',
+		detach : true,
+		autoopen : true,
+		onclose: function() { 
+			setTimeout(function() {
+				// Workaround for leftover wrappers
+				$("#"+popupId+"_wrapper").remove();
+			}, 3000); 
+		}
+	});
+}
+
+function makeApiCall(url, method, data, success, failure, complete) {
+	var headers = {};
+	headers[	window.carpoolApp.csrfHeaderName] = window.carpoolApp.csrfToken;
+	headers['Content-Type'] = 'application/json';
+	
+	if(!failure) {
+		failure = function(xhr, status, error) { if(xhr.responseJSON) { showPopup(exclamationSign + " " + xhr.responseJSON.message); } else { showPopup(exclamationSign + " " + xhr.statusText + " " + xhr.status); } }
+	}
+	
+	$.ajax({
+		method : method,
+		url : window.carpoolApp.siteBaseUrl + url,
+		headers : headers,
+		data : data ? JSON.stringify(data) : null,
+		success : success,
+		error : failure,
+		complete : complete
+	});
+}
+
 
 function handleForm(url, formId, fields, success, failure, json) {
 	updateFormSubmitButton(formId, true);
@@ -242,5 +283,18 @@ function validateField(fieldId, validations, formIds) {
 		for(var fidx in formIds) {
 			updateFormSubmitButton(formIds[fidx]);
 		}
+	}
+}
+
+function fixNumericInput(input) {
+	if(input) {
+		if(input.value) {
+			var newVal = input.value.replace(/[^0-9]/g, '');
+			if(newVal != input.value) {
+				input.value = newVal;
+			}
+		} else {
+			input.value = "1";
+		} 		
 	}
 }

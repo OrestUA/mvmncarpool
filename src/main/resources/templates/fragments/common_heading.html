@@ -9,13 +9,32 @@
 						<div class="twelve columns">{{:content}}</div>
 					</div>
 					<div class="row">&nbsp;</div>
-					<div class="row"><div class="twelve columns">
-						<input type="button" class="{{:popupId}}_close u-full-width" value="{{:closeButtonLabel}}" />
+					<div class="row">
+						<div class="twelve columns">
+							<input type="button" class="{{:popupId}}_close u-full-width" value="{{:closeButtonLabel}}" />
+						</div>
 					</div>
 				</div>
 			</div>
 		</script>
-		<div class="row">&nbsp;</div>
+		<script type="text/x-jsrender" id="confirmDialogTempalte">
+			<div id="{{:popupId}}" class="popup">
+				<div class="container">
+					<div class="row">
+						<div class="twelve columns">{{:content}}</div>
+					</div>
+					<div class="row">&nbsp;</div>
+					<div class="row">
+						<div class="six columns">
+							<input type="button" class="{{:popupId}}_close u-full-width confirmButton" value="{{:yesButtonLabel}}" />
+						</div>
+						<div class="six columns">
+							<input type="button" class="{{:popupId}}_close u-full-width" value="{{:noButtonLabel}}" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>		<div class="row">&nbsp;</div>
 		<div class="row siteHeadingRow">
 			<div class="six columns">
 				<h3 class="u-full-width" th:onclick="'window.location.href=\'' + ${global_baseUrl} + '/\''">[[ #{sitename} ]]</h3>

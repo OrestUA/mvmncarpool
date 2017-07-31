@@ -24,7 +24,7 @@ public class User {
 	protected List<LiftRequest> liftRequests;
 	protected List<LiftOffer> liftOffer;
 	protected List<LiftJoinRequest> liftJoinRequests;
-	protected List<Car> cars;
+	protected List<Vehicle> vehicles;
 	protected List<StoredLocation> storedLocations;
 
 	@Id
@@ -117,12 +117,12 @@ public class User {
 	}
 
 	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "owner")
-	public List<Car> getCars() {
-		return cars;
+	public List<Vehicle> getVehicles() {
+		return vehicles;
 	}
 
-	public void setCars(List<Car> cars) {
-		this.cars = cars;
+	public void setVehicles(List<Vehicle> vehicles) {
+		this.vehicles = vehicles;
 	}
 
 	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")

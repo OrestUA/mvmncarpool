@@ -1,23 +1,27 @@
-package x.mvmn.carpool.model;
+package x.mvmn.carpool.web.dto;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import x.mvmn.carpool.model.Vehicle;
 
-@Entity
-public class Car {
+public class VehicleDTO {
 
 	protected int id;
 	protected String name;
-	protected String description;
 	protected String plateNumber;
-	protected User owner;
 	protected int passengerSeats;
+	protected String description;
+	protected UserDTO owner;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	public VehicleDTO() {
+	}
+
+	public VehicleDTO(int id, String name, String plateNumber, int passengerSeats, String description) {
+		this.id = id;
+		this.name = name;
+		this.plateNumber = plateNumber;
+		this.passengerSeats = passengerSeats;
+		this.description = description;
+	}
+
 	public int getId() {
 		return id;
 	}
@@ -50,12 +54,11 @@ public class Car {
 		this.plateNumber = plateNumber;
 	}
 
-	@ManyToOne(optional = false)
-	public User getOwner() {
+	public UserDTO getOwner() {
 		return owner;
 	}
 
-	public void setOwner(User owner) {
+	public void setOwner(UserDTO owner) {
 		this.owner = owner;
 	}
 
@@ -65,5 +68,9 @@ public class Car {
 
 	public void setPassengerSeats(int passengerSeats) {
 		this.passengerSeats = passengerSeats;
+	}
+
+	public static VehicleDTO fromVehicleIgnoreUser(Vehicle vehicle) {
+		return new VehicleDTO(vehicle.getId(), vehicle.getName(), vehicle.getPlateNumber(), vehicle.getPassengerSeats(), vehicle.getDescription());
 	}
 }

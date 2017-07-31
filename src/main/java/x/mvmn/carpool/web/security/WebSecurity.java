@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,39 +27,54 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 
 import x.mvmn.carpool.model.User;
 import x.mvmn.carpool.service.persistence.UserRepository;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebSecurity extends WebSecurityConfigurerAdapter {
+public class WebSecurity {
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http.logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).and().formLogin().usernameParameter("email").passwordParameter("password")
-				.loginPage("/signin").successHandler(successHandler()).failureHandler(failureHandler()).loginProcessingUrl("/login").and().csrf()
-				.ignoringAntMatchers("/h2db/*").and().headers().frameOptions().sameOrigin();
+	@Configuration
+	@Order(2)
+	public static class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
+		@Override
+		protected void configure(HttpSecurity http) throws Exception {
+			http.csrf().and().antMatcher("/api/**");
+		}
 	}
 
-	protected AuthenticationFailureHandler failureHandler() {
-		return new AuthenticationFailureHandler() {
-			@Override
-			public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
-					throws IOException, ServletException {
-				response.setStatus(401);
-			}
-		};
-	}
+	@Configuration
+	@Order(1)
+	public static class LandingPagesSecurityConfig extends WebSecurityConfigurerAdapter {
+		@Override
+		protected void configure(HttpSecurity http) throws Exception {
+			http.logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).and().formLogin().defaultSuccessUrl("/").usernameParameter("email")
+					.passwordParameter("password").loginPage("/signin").successHandler(successHandler()).failureHandler(failureHandler())
+					.loginProcessingUrl("/login").and().csrf().ignoringAntMatchers("/h2db/*").and().headers().frameOptions().sameOrigin().and()
+					.requestMatcher(new NegatedRequestMatcher(new AntPathRequestMatcher("/api/**")));
+		}
 
-	protected AuthenticationSuccessHandler successHandler() {
-		return new AuthenticationSuccessHandler() {
-			@Override
-			public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-					throws IOException, ServletException {
-				response.setStatus(200);
-			}
-		};
+		protected AuthenticationFailureHandler failureHandler() {
+			return new AuthenticationFailureHandler() {
+				@Override
+				public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
+						throws IOException, ServletException {
+					response.setStatus(401);
+				}
+			};
+		}
+
+		protected AuthenticationSuccessHandler successHandler() {
+			return new AuthenticationSuccessHandler() {
+				@Override
+				public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+						throws IOException, ServletException {
+					response.setStatus(200);
+				}
+			};
+		}
 	}
 
 	@Autowired

@@ -2,6 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="sharedHeadContent">
 	<script type="text/javascript">
+		var exclamationSign = '<i class="fa fa-exclamation-circle" aria-hidden="true"></i>';
+
 		window.carpoolApp = {};
 		window.carpoolApp.siteBaseUrl = '[[ ${global_baseUrl} ]]';
 		window.carpoolApp.csrfHeaderName = '[[ ${_csrf.headerName} ]]';

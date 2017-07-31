@@ -16,7 +16,7 @@ public class LiftOffer {
 	protected int id;
 	protected User user;
 	protected Route route;
-	protected Car car;
+	protected Vehicle vehicle;
 	protected int vacantSeats = 1;
 	protected List<LiftJoinRequest> joinRequests;
 	protected long timeValidFrom;
@@ -51,12 +51,12 @@ public class LiftOffer {
 	}
 
 	@ManyToOne(optional = false)
-	public Car getCar() {
-		return car;
+	public Vehicle getVehicle() {
+		return vehicle;
 	}
 
-	public void setCar(Car car) {
-		this.car = car;
+	public void setVehicle(Vehicle vehicle) {
+		this.vehicle = vehicle;
 	}
 
 	public int getVacantSeats() {
