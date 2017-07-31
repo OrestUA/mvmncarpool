@@ -1,7 +1,7 @@
 var popupIndexCounter = 1;
 
 function setLocale(locale) {
-	$.post(siteBaseUrl + "/api/locale/" + locale + "?_csrf=" + window.csrfToken, function() { window.location.reload(); });
+	$.post(window.carpoolApp.siteBaseUrl + "/api/locale/" + locale + "?_csrf=" + window.carpoolApp.csrfToken, function() { window.location.reload(); });
 }
 
 var exclamationSign = '<i class="fa fa-exclamation-circle" aria-hidden="true"></i>';
@@ -9,7 +9,7 @@ var exclamationSign = '<i class="fa fa-exclamation-circle" aria-hidden="true"></
 function showPopup(content) {
 	var popupId = 'popup_' + (popupIndexCounter++);	
 	var template = $.templates("#popupTempalte");
-	var popup = $(template.render({popupId: popupId, content: content, closeButtonLabel: window.l10n['label.close'] }));
+	var popup = $(template.render({popupId: popupId, content: content, closeButtonLabel: window.carpoolApp.l10n['label.close'] }));
 
 	$("body").append(popup);
 	popup.popup({
@@ -37,7 +37,7 @@ function handleForm(url, formId, fields, success, failure, json) {
 	}
 
 	var headers = {};
-	headers[	window.csrfHeaderName] = window.csrfToken;
+	headers[	window.carpoolApp.csrfHeaderName] = window.carpoolApp.csrfToken;
 	
 	if(json) {
 		data = JSON.stringify(data);
@@ -45,7 +45,7 @@ function handleForm(url, formId, fields, success, failure, json) {
 	}	
 	$.ajax({
 		method : 'POST',
-		url : siteBaseUrl + url,
+		url : window.carpoolApp.siteBaseUrl + url,
 		headers : headers,
 		data : data,
 		success : function() {
@@ -83,26 +83,26 @@ function doLogin() {
 			{ id:"signinFormEmail", clear: { success:true } },
 			{ id:"signinFormPassword", clear: { success:true, failure: true } }
 		],  
-		function() { window.location.href = window.siteBaseUrl + '/'; }, 
-		function() { showPopup(exclamationSign + " " + window.l10n['error.bad_username_or_password']); }
+		function() { window.location.href = window.carpoolApp.siteBaseUrl + '/'; }, 
+		function() { showPopup(exclamationSign + " " + window.carpoolApp.l10n['error.bad_username_or_password']); }
 	);
 }
 
 function doRegister() {
 	var sendData = { email: $('#signinFormEmail').val() };
-	sendData[window.csrfParameterName] = window.csrfToken;
-	$.post(window.siteBaseUrl + '/check_email', sendData, function(data) {
+	sendData[window.carpoolApp.csrfParameterName] = window.carpoolApp.csrfToken;
+	$.post(window.carpoolApp.siteBaseUrl + '/check_email', sendData, function(data) {
 		if(data) {
 			data = data.toLowerCase();
 		}
 		if(data == 'ok') {
 			handleForm("/register", "signUpForm", 
 				[ { id:"signinFormEmail", clear: { success:true } } ],  
-				function() { showPopup(window.l10n['message.register_send_success']); }, 
-				function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); }
+				function() { showPopup(window.carpoolApp.l10n['message.register_send_success']); }, 
+				function(xhr) { showPopup(exclamationSign + " " + xhr.responseJSON.message); }
 			);
 		} else {
-			showPopup(exclamationSign + " " + window.l10n['error.email.' + data]);
+			showPopup(exclamationSign + " " + window.carpoolApp.l10n['error.email.' + data]);
 		}
 	});
 }
@@ -110,16 +110,27 @@ function doRegister() {
 function doResetPassword() {
 	handleForm("/reset_password", "resetPasswordForm", 
 		[ { id:"signinFormEmail", clear: { success:true } } ],  
-		function() { showPopup(window.l10n['message.password_reset_send_success']); }, 
-		function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); }
+		function() { showPopup(window.carpoolApp.l10n['message.password_reset_send_success']); }, 
+		function(xhr) { showPopup(exclamationSign + " " + xhr.responseJSON.message); }
 	);
 }
 
 function doSetNewPassword() {
 	handleForm("/set_new_password", "btnSetNewPassword", 
 		[ { id:"resetPwdConfirmationId" }, { id:"resetPwdEmail" }, { id:"resetPwdPassword" }, { id:"resetPwdPasswordConfirmation" }, { id:"resetPwdFullName" } ],  
-		function() { window.location.href = window.siteBaseUrl + '/'; }, 
-		function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); }
+		function() { window.location.href = window.carpoolApp.siteBaseUrl + '/'; }, 
+		function(xhr) {
+			if(xhr.responseJSON && xhr.responseJSON.errors) {
+				var errorMessages = [];
+				for(var eridx in xhr.responseJSON.errors) {
+					errorMessages.push(window.carpoolApp.l10n[xhr.responseJSON.errors[eridx]]);					
+				}
+				showPopup(exclamationSign + " " + errorMessages.join(". "));
+			} else {
+				showPopup(exclamationSign + " " + window.carpoolApp.l10n['generic_error']);
+				console.error(xhr);
+			}
+		}
 	);
 }
 
@@ -127,7 +138,7 @@ function doUpdateProfile() {
 	handleForm("/api/user/update", "profileUpdateForm", 
 		[ { id:"profileFullName" } ],  
 		null, 
-		function(data) { showPopup(exclamationSign + " " + data.responseJSON.message); },
+		function(xhr) { showPopup(exclamationSign + " " + xhr.responseJSON.message); },
 		true
 	);
 }
@@ -165,16 +176,29 @@ function formSubmitBtnSetState(buttonId, disabled, inProgress) {
 }
 
 function validateNotEmpty(value) {
-	return value && $.trim(value).length > 0 ? null : window.l10n['error.cannot_be_empty'];
+	return value && $.trim(value).length > 0 ? null : window.carpoolApp.l10n['error.cannot_be_empty'];
 }
 
 function validateEmail(value) {
-	return /^[a-zA-Z0-9.\!\#$%&’*+/\=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(value) ? null : window.l10n['error.email.invalid'];
+	return window.carpoolApp.emailRegex.test(value) ? null : window.carpoolApp.l10n['error.email.invalid'];
+}
+
+function validatePasswordChars(value) {
+	return window.carpoolApp.passwordRegex.test(value) ? null : window.carpoolApp.l10n['error.password.bad_characters'];
+}
+
+function fnValidateLength(minLength, maxLength, tooShortErrorKey, tooLongErrorKey) {
+	return function(value) {
+		var valLen = value? value.toString().length : 0;
+		if(valLen<minLength) return window.carpoolApp.l10n[tooShortErrorKey];
+		if(valLen>maxLength) return window.carpoolApp.l10n[tooLongErrorKey];
+		return null;
+	}
 }
 
 function fnValidateMatches(checkFieldId, localizationKey) {
 	return function(value) {
-		return value == $("#" + checkFieldId).val() ? null : window.l10n[localizationKey];
+		return value == $("#" + checkFieldId).val() ? null : window.carpoolApp.l10n[localizationKey];
 	}
 }
 

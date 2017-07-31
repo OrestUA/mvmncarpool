@@ -8,9 +8,8 @@
 		<div class="row">
 			<div class="four columns">
 				<label for="profileFullName">[[ #{label.fullName} ]]</label>
-				&nbsp;
-				<span id="profileFullName_validation" class="validationMessage"></span>
 				<input class="u-full-width" type="text" name="fullName" th:value="${currentUser.fullName}" id="profileFullName" onkeyup="validateField(this.id, [validateNotEmpty], ['profileUpdateForm'])" />
+				<span id="profileFullName_validation" class="validationMessage"></span>
 			</div>
 			<div class="four columns">
 				<label>&nbsp;</label>

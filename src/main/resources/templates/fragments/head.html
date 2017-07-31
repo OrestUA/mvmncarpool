@@ -2,10 +2,15 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="sharedHeadContent">
 	<script type="text/javascript">
-		window.siteBaseUrl = '[[ ${global_baseUrl} ]]';
-		window.csrfHeaderName = '[[ ${_csrf.headerName} ]]';
-		window.csrfParameterName = '[[ ${_csrf.parameterName} ]]';
-		window.csrfToken = '[[ ${_csrf.token} ]]';
+		window.carpoolApp = {};
+		window.carpoolApp.siteBaseUrl = '[[ ${global_baseUrl} ]]';
+		window.carpoolApp.csrfHeaderName = '[[ ${_csrf.headerName} ]]';
+		window.carpoolApp.csrfParameterName = '[[ ${_csrf.parameterName} ]]';
+		window.carpoolApp.csrfToken = '[[ ${_csrf.token} ]]';
+		window.carpoolApp.emailRegex = new RegExp('[( ${ emailRegexJs } )]');
+		window.carpoolApp.passwordRegex = new RegExp('[( ${ passwordRegexJs } )]');
+		window.carpoolApp.passwordLengthMin = [[ ${ passwordLengthMin } ]];
+		window.carpoolApp.passwordLengthMax = [[ ${ passwordLengthMax } ]];
 	</script>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,8 +25,8 @@
 		crossorigin="anonymous"></script>
 	<script type="text/javascript">
 		$(document).ready(function () {
-			$.get(window.siteBaseUrl+"/api/l10n", {}, function(l10n) {
-				window.l10n = l10n;
+			$.get(window.carpoolApp.siteBaseUrl+"/api/l10n", {}, function(l10n) {
+				window.carpoolApp.l10n = l10n;
 
 				$('input').keyup();
 			});

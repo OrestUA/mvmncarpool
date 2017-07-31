@@ -1,9 +1,11 @@
 package x.mvmn.carpool.web.ctrl;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
@@ -31,6 +33,7 @@ import x.mvmn.carpool.model.User;
 import x.mvmn.carpool.service.UserConfirmationService;
 import x.mvmn.carpool.service.persistence.UserRepository;
 import x.mvmn.carpool.web.dto.GenericResultDTO;
+import x.mvmn.carpool.web.dto.NewPasswordResultDTO;
 import x.mvmn.carpool.web.dto.UserDTO;
 import x.mvmn.util.web.auth.UserUtil;
 
@@ -141,7 +144,6 @@ public class UserController {
 					throw ex;
 				}
 			} catch (Exception e) {
-				// TODO: better handling
 				try {
 					if (user != null) {
 						userRepository.delete(user);
@@ -152,18 +154,6 @@ public class UserController {
 				}
 				throw new RuntimeException(e);
 			}
-			// Use password reset instead
-			// } else if (isEmailValid(emailAddress) && !isEmailAvailable(emailAddress)) {
-			// User existingUser = userRepository.findByEmailAddress(emailAddress);
-			// if (existingUser.getConfirmed() == null || !existingUser.getConfirmed().booleanValue()) {
-			// try {
-			// existingUser.setPassword(passwordEncoder.encode(password));
-			// userRepository.save(existingUser);
-			// userConfirmationService.sendConfirmationRequest(existingUser, locale);
-			// } catch (Exception e) {
-			// throw new RuntimeException(e);
-			// }
-			// }
 		} else {
 			result.message = msgSource.getMessage("error.email." + emailCheckResult.name().toLowerCase(), new Object[0], locale);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -184,14 +174,15 @@ public class UserController {
 	}
 
 	@RequestMapping(path = "/set_new_password", method = RequestMethod.POST)
-	public GenericResultDTO setNewPassword(@Email @RequestParam(required = false, name = "email") String emailAddress,
+	public NewPasswordResultDTO setNewPassword(@Email @RequestParam(required = false, name = "email") String emailAddress,
 			@RequestParam(required = false, name = UserConfirmationService.CONFIRMATION_ID_PARAM_NAME) String confirmationId,
 			@RequestParam(required = false, name = "password") String password,
 			@RequestParam(required = false, name = "passwordConfirmation") String passwordConfirmation,
 			@RequestParam(required = false, name = "fullName") String fullName, HttpServletResponse response, Model model) {
-		GenericResultDTO result = new GenericResultDTO();
+		NewPasswordResultDTO result;
 		User user = userConfirmationService.validatePasswordResetRequest(emailAddress, confirmationId);
-		if (user != null && password != null && password.equals(passwordConfirmation)) {
+		boolean passwordsMatch = password != null && password.equals(passwordConfirmation);
+		if (user != null && passwordsMatch) {
 			Set<PasswordInvalidityCause> passwordValidationResult = isPasswordValid(password);
 			if (passwordValidationResult.isEmpty()) {
 				user.setPassword(passwordEncoder.encode(password));
@@ -202,44 +193,37 @@ public class UserController {
 					user.setFullName(fullName);
 				}
 				userRepository.save(user);
-				result.success = true;
-				result.message = "ok";
+				result = new NewPasswordResultDTO(true, null);
 			} else {
-				// TODO: provide password validation result to UI
-				result.message = passwordValidationResult.iterator().next().name();
-				result.success = false;
+				result = new NewPasswordResultDTO(false,
+						passwordValidationResult.stream().map(pic -> "error.password." + pic.name().toLowerCase()).collect(Collectors.toList()));
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 		} else {
-			// TODO: specific errors
-			result.message = "Wrong user or passwords don't match";
-			result.success = false;
+			result = new NewPasswordResultDTO(false,
+					Arrays.asList(user != null && !passwordsMatch ? "error.password.nomatch" : "error.invalid_token.password_reset"));
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 		return result;
 	}
 
 	protected boolean isEmailAvailable(String emailAddress) {
-		// TODO: move to service/helper
 		return userRepository.findByEmailAddress(emailAddress) == null;
 	}
 
 	protected boolean isEmailValid(String email) {
-		// TODO: move to service/helper
 		return email != null && emailRegEx.matcher(email).matches();
 	}
 
 	protected Set<PasswordInvalidityCause> isPasswordValid(String password) {
 		Set<PasswordInvalidityCause> result = new HashSet<>();
-		// TODO: move to service/helper
-		int pwdLength = password.length();
+		int pwdLength = password != null ? password.length() : 0;
 		if (pwdLength < passwordLengthMin) {
 			result.add(PasswordInvalidityCause.TOO_SHORT);
-		}
-		if (pwdLength > passwordLengthMax) {
+		} else if (pwdLength > passwordLengthMax) {
 			result.add(PasswordInvalidityCause.TOO_LONG);
 		}
-		if (!passwordRegEx.matcher(password).matches()) {
+		if (pwdLength > 0 && !passwordRegEx.matcher(password).matches()) {
 			result.add(PasswordInvalidityCause.BAD_CHARACTERS);
 		}
 

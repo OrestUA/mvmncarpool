@@ -31,6 +31,18 @@ public class LandingPagesController {
 
 	@Value("${mvmncarpool.baseurl}")
 	String baseUrl;
+	
+	@Value("${mvmncarpool.emailregex.js:^.*@.*$}")
+	String emailRegExPatternStrJs;
+	
+	@Value("${mvmncarpool.password_policy.length.min:6}")
+	int passwordLengthMin;
+
+	@Value("${mvmncarpool.password_policy.length.max:256}")
+	int passwordLengthMax;
+
+	@Value("${mvmncarpool.password_policy.regex.js:^.*$}")
+	String passwordRegExPatternStrJs;	
 
 	@Autowired
 	UserConfirmationService userConfirmationService;
@@ -81,5 +93,9 @@ public class LandingPagesController {
 		model.addAttribute("currentUser", UserUtil.getCurrentUser(auth));
 		model.addAttribute("locales", getAvailableLocales());
 		model.addAttribute("global_baseUrl", baseUrl);
+		model.addAttribute("emailRegexJs", emailRegExPatternStrJs);
+		model.addAttribute("passwordRegexJs", passwordRegExPatternStrJs);
+		model.addAttribute("passwordLengthMin", passwordLengthMin);
+		model.addAttribute("passwordLengthMax", passwordLengthMax);
 	}
 }
