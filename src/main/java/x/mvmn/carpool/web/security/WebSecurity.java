@@ -37,7 +37,7 @@ import x.mvmn.carpool.service.persistence.UserRepository;
 public class WebSecurity {
 
 	@Configuration
-	@Order(2)
+	@Order(1)
 	public static class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
@@ -46,7 +46,7 @@ public class WebSecurity {
 	}
 
 	@Configuration
-	@Order(1)
+	@Order(2)
 	public static class LandingPagesSecurityConfig extends WebSecurityConfigurerAdapter {
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
