@@ -1,6 +1,20 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:include="fragments/head :: sharedHeadContent">
+<head>
+	<object th:include="fragments/head :: sharedHeadContent" th:remove="tag"></object>
+	<script src="static/js/profile.js"></script>
+	<script type="text/javascript">				
+		$(document).ready(function () {
+			$.get(window.carpoolApp.siteBaseUrl + "/api/vehicles", {}, function(vehicles) {
+				$("#profilePageCarList tbody").html("");
+				for(var vehicleIdx in vehicles) {
+					$("#profilePageCarList tbody").append($.templates("#vehicleRowTempalte").render(vehicles[vehicleIdx]));						
+				}
+			}).fail(function(xhr) {
+				$("#profilePageCarListLoadingIndicator").html(exclamationSign + " " + (xhr.responseJSON ? xhr.responseJSON.message : (xhr.statusText + " " + xhr.status)));
+			});
+		});
+	</script>
 </head>
 <body>
 	<div class="container">
@@ -63,61 +77,6 @@
 								</button>
 							</td>
 						</tr>
-					</script>
-					<script type="text/javascript">				
-						function deleteVehicle(id) {
-							showConfirmation(window.carpoolApp.l10n['label.confirm_delete_vehicle'].replace('{0}', $("#vehicle_name_"+id).val()), 'label.no', 'label.yes', function (){
-								formSubmitBtnSetState("btn_delete_vehicle_"+id, true, true);
-								makeApiCall("/api/vehicles/"+id, 'DELETE', null, function() {
-									$("#vehicleRow_"+id).remove();
-								});
-							}, null, function() {
-								formSubmitBtnSetState("btn_delete_vehicle_"+id, false, false);
-							});
-						}
-						
-						function updateVehicle(id) {
-							var data = {
-								id: id,
-								name: $("#vehicle_name_"+id).val(),
-								plateNumber: $("#vehicle_plate_"+id).val(),
-								passengerSeats: parseInt($("#vehicle_seats_"+id).val()),
-								description: $("#vehicle_desc_"+id).val(),
-							};
-							
-							formSubmitBtnSetState("btn_update_vehicle_"+id, true, true);
-							makeApiCall("/api/vehicles", 'POST', data, null, null, function() {
-								formSubmitBtnSetState("btn_update_vehicle_"+id, false, false);
-							});
-						}
-						
-						function doAddVehicle() {
-							var data = {
-									id: 0,
-									name: $("#newVehicleName").val(),
-									plateNumber: $("#newVehiclePlate").val(),
-									passengerSeats: parseInt($("#newVehicleSeats").val()),
-									description: $("#newVehicleDescripton").val(),
-								};
-							
-							formSubmitBtnSetState("btnAddVehicle", true, true);						
-							makeApiCall("/api/vehicles", 'PUT', data, function(vehicleDto) {
-								$("#profilePageCarList tbody").append($.templates("#vehicleRowTempalte").render(vehicleDto));
-							}, null, function() {
-								formSubmitBtnSetState("btnAddVehicle", false, false);
-							});
-						}
-					
-						$(document).ready(function () {
-							$.get(window.carpoolApp.siteBaseUrl + "/api/vehicles", {}, function(vehicles) {
-								$("#profilePageCarList tbody").html("");
-								for(var vehicleIdx in vehicles) {
-									$("#profilePageCarList tbody").append($.templates("#vehicleRowTempalte").render(vehicles[vehicleIdx]));						
-								}
-							}).fail(function(xhr) {
-								$("#profilePageCarListLoadingIndicator").html(exclamationSign + " " + xhr.responseJSON.message);
-							});
-						});
 					</script>
 					<table id="profilePageCarList" class="carListTable u-full-width">
 						<thead>
