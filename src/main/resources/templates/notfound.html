@@ -1,0 +1,16 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/head :: sharedHeadContent">
+</head>
+<body>
+	<div class="container">
+		<div th:replace="fragments/common_heading :: commonHeading"></div>
+		<div class="row">
+			<div class="twelwe columns" style="text-align: center">
+				<h5>[[ #{error.pagenotfound} ]]</h5>
+				<a th:href="${global_baseUrl} + '/'">[[ #{label.homepage_link} ]]</a>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -17,10 +17,10 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
-	<link rel="stylesheet" href="static/css/font-awesome.min.css">
-	<link rel="stylesheet" href="static/css/normalize.css">
-	<link rel="stylesheet" href="static/css/skeleton.css">
-	<link rel="stylesheet" href="static/css/main.css">
+	<link rel="stylesheet" th:href="${global_baseUrl} + '/static/css/font-awesome.min.css'">
+	<link rel="stylesheet" th:href="${global_baseUrl} + '/static/css/normalize.css'">
+	<link rel="stylesheet" th:href="${global_baseUrl} + '/static/css/skeleton.css'">
+	<link rel="stylesheet" th:href="${global_baseUrl} + '/static/css/main.css'">
 
 	<script src="https://code.jquery.com/jquery-3.2.1.min.js"
 		integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
@@ -35,9 +35,9 @@
 		});
 	</script>
 	<script src="https://maps.googleapis.com/maps/api/js?libraries=places"></script>
-	<script src="static/js/pubsub.js"></script>
-	<script src="static/js/jsrender.min.js"></script>
-	<script src="static/js/main.js"></script>		
+	<script th:src="${global_baseUrl} + '/static/js/pubsub.js'"></script>
+	<script th:src="${global_baseUrl} + '/static/js/jsrender.min.js'"></script>
+	<script th:src="${global_baseUrl} + '/static/js/main.js'"></script>		
 	<title th:text="#{sitename}"></title>
 	<!-- Include jQuery Popup Overlay -->
 	<script src="https://cdn.rawgit.com/vast-engineering/jquery-popup-overlay/1.7.13/jquery.popupoverlay.js"></script>
