@@ -4,6 +4,13 @@ function setLocale(locale) {
 	$.post(window.carpoolApp.siteBaseUrl + "/api/locale/" + locale + "?_csrf=" + window.carpoolApp.csrfToken, function() { window.location.reload(); });
 }
 
+function toggleCollapse(sectionId) {
+	var hide = $("#"+sectionId).is(":visible"); 
+	$("#"+sectionId+"_hider").css('display', hide ? 'none' : 'inline-block');
+	$("#"+sectionId+"_revealer").css('display', hide ? 'inline-block' : 'none');
+	$("#"+sectionId).slideToggle('slow');
+}
+
 function showPopup(content) {
 	var popupId = 'popup_' + (popupIndexCounter++);	
 	var template = $.templates("#popupTempalte");
