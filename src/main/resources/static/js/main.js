@@ -5,10 +5,10 @@ function setLocale(locale) {
 }
 
 function toggleCollapse(sectionId) {
-	var hide = $("#"+sectionId).is(":visible"); 
+	var hide = $("#"+sectionId+"_hider").is(":visible"); 
 	$("#"+sectionId+"_hider").css('display', hide ? 'none' : 'inline-block');
 	$("#"+sectionId+"_revealer").css('display', hide ? 'inline-block' : 'none');
-	$("#"+sectionId).slideToggle('slow');
+	$("#"+sectionId).slideToggle(100);
 }
 
 function showPopup(content) {
