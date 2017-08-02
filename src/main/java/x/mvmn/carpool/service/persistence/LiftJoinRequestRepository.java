@@ -1,19 +1,51 @@
 package x.mvmn.carpool.service.persistence;
 
-import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import x.mvmn.carpool.model.LiftJoinRequest;
-import x.mvmn.carpool.model.User;
 
-public interface LiftJoinRequestRepository extends JpaRepository<LiftJoinRequest, Integer> {
+public interface LiftJoinRequestRepository extends JpaRepository<LiftJoinRequest, Integer>, JpaSpecificationExecutor<LiftJoinRequest> {
 
-	public List<LiftJoinRequest> findByUser(User user);
+	public static Specification<LiftJoinRequest> specUserId(int userId) {
+		return new Specification<LiftJoinRequest>() {
+			@Override
+			public Predicate toPredicate(Root<LiftJoinRequest> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.equal(root.get("user").get("id"), userId);
+			}
+		};
+	}
 
-	@Query("SELECT ljr FROM LiftJoinRequest ljr WHERE ljr.user.id = :userId AND ljr.offer.timeValidTo > :validAfter")
-	public List<LiftJoinRequest> findByUserAndTimeValidToGreaterThanEqual(@Param("userId") int userId, @Param("validAfter") long validAfter);
+	public static Specification<LiftJoinRequest> specValidAfter(long validAfter) {
+		return new Specification<LiftJoinRequest>() {
+			@Override
+			public Predicate toPredicate(Root<LiftJoinRequest> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.greaterThanOrEqualTo(root.get("offer").get("timeValidTo"), validAfter);
+			}
+		};
+	}
 
+	public static Specification<LiftJoinRequest> specDriverInitiated(boolean driverInitiated) {
+		return new Specification<LiftJoinRequest>() {
+			@Override
+			public Predicate toPredicate(Root<LiftJoinRequest> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.equal(root.get("driverInitiated"), driverInitiated);
+			}
+		};
+	}
+
+	public static Specification<LiftJoinRequest> specApproved(boolean approved) {
+		return new Specification<LiftJoinRequest>() {
+			@Override
+			public Predicate toPredicate(Root<LiftJoinRequest> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.equal(root.get("approved"), approved);
+			}
+		};
+	}
 }

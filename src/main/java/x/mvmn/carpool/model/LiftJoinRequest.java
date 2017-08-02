@@ -12,6 +12,7 @@ public class LiftJoinRequest {
 	protected int id;
 	protected LiftOffer offer;
 	protected User user;
+	protected boolean driverInitiated;
 	protected boolean approved;
 
 	@Id
@@ -48,5 +49,13 @@ public class LiftJoinRequest {
 
 	public void setApproved(boolean approved) {
 		this.approved = approved;
+	}
+
+	public boolean isDriverInitiated() {
+		return driverInitiated;
+	}
+
+	public void setDriverInitiated(boolean driverInitiated) {
+		this.driverInitiated = driverInitiated;
 	}
 }

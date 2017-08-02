@@ -33,7 +33,7 @@ public class LiftRequestController {
 	@RequestMapping(path = "/api/liftrequest/active/own", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasRole('ROLE_USER')")
 	public @ResponseBody List<LiftRequestDTO> listOwnLiftRequests(Authentication auth) {
-		return liftRequestRepository.findByUserAndTimeValidToGreaterThanEqual(UserUtil.getCurrentUser(auth), System.currentTimeMillis()).stream()
+		return liftRequestRepository.findByUserAndTimeValidToGreaterThanEqual(UserUtil.getCurrentUser(auth), System.currentTimeMillis() / 1000).stream()
 				.map(LiftRequestDTO::fromLiftRequest).collect(Collectors.toList());
 	}
 
