@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 	<object th:include="fragments/head :: sharedHeadContent" th:remove="tag"></object>
-	<script th:src="${global_baseUrl} + 'static/js/profile.js'"></script>
+	<script th:src="${global_baseUrl} + '/static/js/profile.js'"></script>
 	<script type="text/javascript">				
 		$(document).ready(function () {
 			$.get(window.carpoolApp.siteBaseUrl + "/api/vehicles", {}, function(vehicles) {

@@ -36,6 +36,7 @@ function doAddVehicle() {
 	formSubmitBtnSetState("btnAddVehicle", true, true);						
 	makeApiCall("/api/vehicles", 'PUT', data, function(vehicleDto) {
 		$("#profilePageCarList tbody").append($.templates("#vehicleRowTempalte").render(vehicleDto));
+		$("#profile_addVehicleSection input").val("");
 	}, null, function() {
 		formSubmitBtnSetState("btnAddVehicle", false, false);
 	});
