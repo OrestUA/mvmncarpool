@@ -12,6 +12,7 @@ public class LiftJoinRequest {
 	protected int id;
 	protected LiftOffer offer;
 	protected User user;
+	protected boolean approved;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -39,5 +40,13 @@ public class LiftJoinRequest {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	public boolean isApproved() {
+		return approved;
+	}
+
+	public void setApproved(boolean approved) {
+		this.approved = approved;
 	}
 }

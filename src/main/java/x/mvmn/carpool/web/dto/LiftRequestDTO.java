@@ -1,24 +1,17 @@
-package x.mvmn.carpool.model;
+package x.mvmn.carpool.web.dto;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import x.mvmn.carpool.model.LiftRequest;
 
-@Entity
-public class LiftRequest {
+public class LiftRequestDTO {
 
 	protected int id;
 	protected long timeValidFrom;
 	protected long timeValidTo;
 	protected double lat;
 	protected double lon;
-	protected User user;
+	protected int userId;
 	protected String notes;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
 	public int getId() {
 		return id;
 	}
@@ -59,13 +52,12 @@ public class LiftRequest {
 		this.lon = lon;
 	}
 
-	@ManyToOne(optional = false)
-	public User getUser() {
-		return user;
+	public int getUserId() {
+		return userId;
 	}
 
-	public void setUser(User user) {
-		this.user = user;
+	public void setUserId(int userId) {
+		this.userId = userId;
 	}
 
 	public String getNotes() {
@@ -74,5 +66,18 @@ public class LiftRequest {
 
 	public void setNotes(String notes) {
 		this.notes = notes;
+	}
+
+	public static LiftRequestDTO fromLiftRequest(LiftRequest liftRequest) {
+		LiftRequestDTO result = new LiftRequestDTO();
+		result.setId(liftRequest.getId());
+		result.setLat(liftRequest.getLat());
+		result.setLon(liftRequest.getLon());
+		result.setTimeValidFrom(liftRequest.getTimeValidFrom());
+		result.setTimeValidTo(liftRequest.getTimeValidTo());
+		result.setNotes(liftRequest.getNotes());
+		result.setUserId(liftRequest.getUser().getId());
+
+		return result;
 	}
 }
