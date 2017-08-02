@@ -107,4 +107,34 @@ public class LiftJoinRequestController {
 
 		return result;
 	}
+
+	@RequestMapping(path = "/api/liftjoinrequest/{id}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+	protected @ResponseBody GenericResultDTO deleteRequest(int requestId, Authentication auth, HttpServletResponse response, boolean approve) {
+		int currentUserId = UserUtil.getCurrentUser(auth).getId();
+		GenericResultDTO result = new GenericResultDTO();
+		result.success = false;
+
+		LiftJoinRequest ljr = liftJoinRequestRepository.findOne(requestId);
+		if (ljr != null) {
+			// I can delete request if:
+			// A - driver created request and I'm the driver;
+			// B - passenger created request and I'm the passenger.
+			if (ljr.isDriverInitiated() && ljr.getOffer().getUser().getId() == currentUserId
+					|| !ljr.isDriverInitiated() && ljr.getUser().getId() == currentUserId) {
+				liftJoinRequestRepository.delete(ljr);
+
+				result.success = true;
+				result.message = "ok";
+			} else {
+				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+				result.message = "You cannot delete lift join request that was not created by you";
+			}
+		} else {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			result.message = "Lift join request not found by specified ID";
+		}
+
+		return result;
+	}
+
 }
