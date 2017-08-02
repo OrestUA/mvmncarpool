@@ -83,7 +83,7 @@ public class WebSecurity {
 		auth.userDetailsService(new UserDetailsService() {
 			public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 				User user = userRepository.findByEmailAddress(username);
-				if (user == null) {
+				if (user == null || user.getConfirmed() == null || !user.getConfirmed().booleanValue()) {
 					throw new UsernameNotFoundException("User not found for name: " + username);
 				}
 				return new UserDetailsAdaptor(user);
