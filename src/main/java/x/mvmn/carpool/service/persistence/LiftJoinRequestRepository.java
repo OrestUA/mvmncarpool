@@ -13,11 +13,29 @@ import x.mvmn.carpool.model.LiftJoinRequest;
 
 public interface LiftJoinRequestRepository extends JpaRepository<LiftJoinRequest, Integer>, JpaSpecificationExecutor<LiftJoinRequest> {
 
-	public static Specification<LiftJoinRequest> specUserId(int userId) {
+	public static Specification<LiftJoinRequest> specPassengerUserId(int userId) {
 		return new Specification<LiftJoinRequest>() {
 			@Override
 			public Predicate toPredicate(Root<LiftJoinRequest> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				return cb.equal(root.get("user").get("id"), userId);
+			}
+		};
+	}
+
+	public static Specification<LiftJoinRequest> specDriverUserId(int userId) {
+		return new Specification<LiftJoinRequest>() {
+			@Override
+			public Predicate toPredicate(Root<LiftJoinRequest> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.equal(root.get("offer").get("user").get("id"), userId);
+			}
+		};
+	}
+
+	public static Specification<LiftJoinRequest> specLiftOfferId(int liftOfferId) {
+		return new Specification<LiftJoinRequest>() {
+			@Override
+			public Predicate toPredicate(Root<LiftJoinRequest> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.equal(root.get("offer").get("id"), liftOfferId);
 			}
 		};
 	}
@@ -45,6 +63,15 @@ public interface LiftJoinRequestRepository extends JpaRepository<LiftJoinRequest
 			@Override
 			public Predicate toPredicate(Root<LiftJoinRequest> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				return cb.equal(root.get("approved"), approved);
+			}
+		};
+	}
+
+	public static Specification<LiftJoinRequest> specApprovedIsNull() {
+		return new Specification<LiftJoinRequest>() {
+			@Override
+			public Predicate toPredicate(Root<LiftJoinRequest> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.isNull(root.get("approved"));
 			}
 		};
 	}

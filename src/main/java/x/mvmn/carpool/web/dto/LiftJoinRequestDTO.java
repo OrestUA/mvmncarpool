@@ -8,7 +8,7 @@ public class LiftJoinRequestDTO {
 	protected int liftOfferId;
 	protected int userId;
 	protected boolean driverInitiated;
-	protected boolean approved;
+	protected Boolean approved;
 
 	public int getId() {
 		return id;
@@ -56,7 +56,7 @@ public class LiftJoinRequestDTO {
 		result.setLiftOfferId(request.getOffer().getId());
 		result.setUserId(request.getUser().getId());
 		result.setDriverInitiated(request.isDriverInitiated());
-		result.setApproved(request.isApproved());
+		result.setApproved(request.getApproved());
 
 		return result;
 	}

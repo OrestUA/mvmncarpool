@@ -5,15 +5,19 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 @Entity
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "offer_id" }) })
 public class LiftJoinRequest {
 
 	protected int id;
 	protected LiftOffer offer;
 	protected User user;
 	protected boolean driverInitiated;
-	protected boolean approved;
+	// null - pending, true - approved, false - rejected
+	protected Boolean approved;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -43,11 +47,11 @@ public class LiftJoinRequest {
 		this.user = user;
 	}
 
-	public boolean isApproved() {
+	public Boolean getApproved() {
 		return approved;
 	}
 
-	public void setApproved(boolean approved) {
+	public void setApproved(Boolean approved) {
 		this.approved = approved;
 	}
 
