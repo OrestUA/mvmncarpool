@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,11 +33,32 @@ public class LiftRequestController {
 	@Autowired
 	private LiftRequestRepository liftRequestRepository;
 
-	@RequestMapping(path = "/api/liftrequest/active/own", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/api/liftrequest", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasRole('ROLE_USER')")
-	public @ResponseBody List<LiftRequestDTO> listOwnLiftRequests(Authentication auth) {
-		return liftRequestRepository.findByUserAndTimeValidToGreaterThanEqual(UserUtil.getCurrentUser(auth), System.currentTimeMillis() / 1000).stream()
-				.map(LiftRequestDTO::fromLiftRequest).collect(Collectors.toList());
+	public @ResponseBody List<LiftRequestDTO> listOwnLiftRequests(Authentication auth, @RequestParam(name = "activeOnly", required = false) Boolean activeOnly,
+			@RequestParam(name = "ownOnly", required = false) Boolean ownOnly, @RequestParam(name = "userId", required = false) Integer userId) {
+		// TODO: consider paging
+		List<LiftRequest> liftRequests;
+		Specifications<LiftRequest> searchSpecs = null;
+		if (activeOnly != null && activeOnly.booleanValue()) {
+			searchSpecs = Specifications.where(LiftRequestRepository.specValidAfter(System.currentTimeMillis() / 1000));
+		}
+
+		if (ownOnly != null && ownOnly.booleanValue()) {
+			Specification<LiftRequest> spec = LiftRequestRepository.specUserId(UserUtil.getCurrentUser(auth).getId());
+			searchSpecs = searchSpecs != null ? searchSpecs.and(spec) : Specifications.where(spec);
+		} else if (userId != null) {
+			Specification<LiftRequest> spec = LiftRequestRepository.specUserId(userId.intValue());
+			searchSpecs = searchSpecs != null ? searchSpecs.and(spec) : Specifications.where(spec);
+		}
+
+		if (searchSpecs == null) {
+			liftRequests = liftRequestRepository.findAll();
+		} else {
+			liftRequests = liftRequestRepository.findAll(searchSpecs);
+		}
+
+		return liftRequests.stream().map(LiftRequestDTO::fromLiftRequest).collect(Collectors.toList());
 	}
 
 	@RequestMapping(path = "/api/liftrequest/{id}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
