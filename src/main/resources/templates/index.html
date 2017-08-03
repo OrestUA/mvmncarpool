@@ -1,6 +1,27 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:include="fragments/head :: sharedHeadContent">
+<head>
+	<object th:include="fragments/head :: sharedHeadContent" th:remove="tag"></object>
+	<script>
+		PubSub.subscribe("global.carpoolApp.ready", function() {
+			// init google maps map, add click handler to pubsub event publishing
+		});
+
+		window.carpoolApp.loadedModules = [];
+		PubSub.subscribe("global.module.load", function(moduleName) {
+			window.carpoolApp.loadedModules.push(moduleName);
+			if(window.carpoolApp.loadedModules.length == 2) {
+				PubSub.publish("global.carpoolApp.ready");
+			}
+		});
+		function onGoogleMapsLoad() {
+			PubSub.publish("global.module.load.googleMaps");
+		}
+		$(document).ready(function () {
+			PubSub.publish("global.module.load.document");
+		});
+	</script>
+	<script src="https://maps.googleapis.com/maps/api/js?libraries=places&callback=onGoogleMapsLoad"></script>
 </head>
 <body>
 	<div class="container">
