@@ -117,6 +117,7 @@ public class LiftRequestController {
 			liftRequest.setTimeValidFrom(liftRequestDTO.getTimeValidFrom());
 			liftRequest.setTimeValidTo(liftRequestDTO.getTimeValidTo());
 			liftRequest.setNotes(liftRequestDTO.getNotes());
+			liftRequest.setAddress(liftRequestDTO.getAddress());
 			liftRequestRepository.save(liftRequest);
 			result.success = true;
 			result.message = "ok";

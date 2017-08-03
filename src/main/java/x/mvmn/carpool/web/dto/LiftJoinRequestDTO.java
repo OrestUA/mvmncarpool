@@ -6,6 +6,7 @@ public class LiftJoinRequestDTO {
 
 	protected int id;
 	protected int liftOfferId;
+	protected Integer liftRequestId;
 	protected int userId;
 	protected boolean driverInitiated;
 	protected Boolean approved;
@@ -50,6 +51,22 @@ public class LiftJoinRequestDTO {
 		this.driverInitiated = driverInitiated;
 	}
 
+	public Integer getLiftRequestId() {
+		return liftRequestId;
+	}
+
+	public void setLiftRequestId(Integer liftRequestId) {
+		this.liftRequestId = liftRequestId;
+	}
+
+	public Boolean getApproved() {
+		return approved;
+	}
+
+	public void setApproved(Boolean approved) {
+		this.approved = approved;
+	}
+
 	public static LiftJoinRequestDTO fromLiftJoinRequest(LiftJoinRequest request) {
 		LiftJoinRequestDTO result = new LiftJoinRequestDTO();
 		result.setId(request.getId());
@@ -57,6 +74,7 @@ public class LiftJoinRequestDTO {
 		result.setUserId(request.getUser().getId());
 		result.setDriverInitiated(request.isDriverInitiated());
 		result.setApproved(request.getApproved());
+		result.setLiftRequestId(request.getLiftRequest() != null ? request.getLiftRequest().getId() : null);
 
 		return result;
 	}

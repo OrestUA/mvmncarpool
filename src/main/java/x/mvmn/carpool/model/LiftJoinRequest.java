@@ -18,6 +18,7 @@ public class LiftJoinRequest {
 	protected boolean driverInitiated;
 	// null - pending, true - approved, false - rejected
 	protected Boolean approved;
+	protected LiftRequest liftRequest;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -61,5 +62,14 @@ public class LiftJoinRequest {
 
 	public void setDriverInitiated(boolean driverInitiated) {
 		this.driverInitiated = driverInitiated;
+	}
+
+	@ManyToOne(optional = true)
+	public LiftRequest getLiftRequest() {
+		return liftRequest;
+	}
+
+	public void setLiftRequest(LiftRequest liftRequest) {
+		this.liftRequest = liftRequest;
 	}
 }

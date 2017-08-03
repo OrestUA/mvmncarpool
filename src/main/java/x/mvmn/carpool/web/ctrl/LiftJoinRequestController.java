@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,7 +19,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import x.mvmn.carpool.model.LiftJoinRequest;
+import x.mvmn.carpool.model.LiftOffer;
+import x.mvmn.carpool.model.LiftRequest;
+import x.mvmn.carpool.model.User;
 import x.mvmn.carpool.service.persistence.LiftJoinRequestRepository;
+import x.mvmn.carpool.service.persistence.LiftOfferRepository;
+import x.mvmn.carpool.service.persistence.LiftRequestRepository;
+import x.mvmn.carpool.service.persistence.UserRepository;
 import x.mvmn.carpool.web.dto.GenericResultDTO;
 import x.mvmn.carpool.web.dto.LiftJoinRequestDTO;
 import x.mvmn.util.web.auth.UserUtil;
@@ -28,6 +35,15 @@ public class LiftJoinRequestController {
 
 	@Autowired
 	LiftJoinRequestRepository liftJoinRequestRepository;
+
+	@Autowired
+	LiftOfferRepository liftOfferRepository;
+
+	@Autowired
+	LiftRequestRepository liftRequestRepository;
+
+	@Autowired
+	UserRepository userRepository;
 
 	@RequestMapping(path = "/api/liftjoinrequest/issued", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasRole('ROLE_USER')")
@@ -139,4 +155,49 @@ public class LiftJoinRequestController {
 		return result;
 	}
 
+	@RequestMapping(path = "/api/liftjoinrequest", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public @ResponseBody GenericResultDTO issueLiftJoinRequest(Authentication auth, HttpServletResponse response,
+			@RequestBody LiftJoinRequestDTO liftJoinRequestDTO) {
+		User currentUser = UserUtil.getCurrentUser(auth);
+		GenericResultDTO result = new GenericResultDTO();
+		result.success = false;
+
+		LiftOffer liftOffer = liftOfferRepository.findOne(liftJoinRequestDTO.getLiftOfferId());
+		if (liftOffer == null) {
+			// TODO: not found
+		} else {
+			if (liftOffer.getJoinRequests().stream().filter(ljr -> ljr.getUser().getId() == currentUser.getId()).count() > 0) {
+				// User already has join request TODO: bad request
+
+			} else {
+				boolean driverInitiated = liftOffer.getUser().getId() == currentUser.getId();
+				User passenger;
+				LiftRequest liftRequest = null;
+				if (driverInitiated) {
+					if (liftJoinRequestDTO.getLiftRequestId() != null) {
+						liftRequest = liftRequestRepository.findOne(liftJoinRequestDTO.getLiftRequestId());
+					}
+					if (liftRequest == null) {
+						// TODO: bad request - must specify which lift request is this join offer for
+						return result;
+					} else {
+						passenger = liftRequest.getUser();
+					}
+				} else {
+					passenger = currentUser;
+				}
+				LiftJoinRequest ljr = new LiftJoinRequest();
+				ljr.setUser(passenger);
+				ljr.setOffer(liftOffer);
+				ljr.setApproved(null);
+				ljr.setDriverInitiated(driverInitiated);
+				ljr.setLiftRequest(liftRequest);
+				liftJoinRequestRepository.save(ljr);
+				result.success = true;
+				result.message = "ok";
+			}
+		}
+
+		return result;
+	}
 }

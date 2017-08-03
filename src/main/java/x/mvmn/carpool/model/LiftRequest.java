@@ -10,11 +10,12 @@ import javax.persistence.ManyToOne;
 public class LiftRequest {
 
 	protected int id;
+	protected User user;
 	protected long timeValidFrom;
 	protected long timeValidTo;
 	protected double lat;
 	protected double lon;
-	protected User user;
+	protected String address;
 	protected String notes;
 
 	@Id
@@ -74,5 +75,13 @@ public class LiftRequest {
 
 	public void setNotes(String notes) {
 		this.notes = notes;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
 	}
 }
