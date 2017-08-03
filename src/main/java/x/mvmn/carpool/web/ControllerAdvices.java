@@ -1,5 +1,8 @@
 package x.mvmn.carpool.web;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -8,8 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import org.springframework.web.servlet.view.RedirectView;
 
 import com.savoirtech.logging.slf4j.json.LoggerFactory;
 import com.savoirtech.logging.slf4j.json.logger.Logger;
@@ -32,15 +35,22 @@ public class ControllerAdvices {
 	}
 
 	@ExceptionHandler(AccessDeniedException.class)
-	public RedirectView handleAccessDenied() {
-		return new RedirectView(webHelperService.getBaseUrl() + "/signin");
+	public void handleAccessDenied(HttpServletRequest req, HttpServletResponse resp) {
+		if (req.getRequestURI().startsWith("/api") || req.getRequestURI().startsWith(webHelperService.getBaseUrl() + "/api")) {
+			resp.setContentType("application/json");
+			resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		} else {
+			resp.setHeader("Location", webHelperService.getBaseUrl() + "/signin");
+			resp.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
+		}
 	}
 
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-	public String handleGenericError(Exception e, Model model) {
+	public ModelAndView handleGenericError(Exception e) {
+		ModelAndView mav = new ModelAndView("internalerror");
 		LOGGER.error().exception("Unhandled exception occurred", e);
-		model.addAttribute("error", e);
-		return "internalerror";
+		mav.addObject("error", e);
+		return mav;
 	}
 }
