@@ -71,11 +71,13 @@ public class LiftJoinRequestController {
 	}
 
 	@RequestMapping(path = "/api/liftjoinrequest/{id}/approve", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasRole('ROLE_USER')")
 	public @ResponseBody GenericResultDTO approveRequest(Authentication auth, @PathVariable("id") int requestId, HttpServletResponse response) {
 		return doApproveOrRejectRequest(requestId, UserUtil.getCurrentUser(auth).getId(), response, true);
 	}
 
 	@RequestMapping(path = "/api/liftjoinrequest/{id}/reject", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasRole('ROLE_USER')")
 	public @ResponseBody GenericResultDTO rejectRequest(Authentication auth, @PathVariable("id") int requestId, HttpServletResponse response) {
 		return doApproveOrRejectRequest(requestId, UserUtil.getCurrentUser(auth).getId(), response, false);
 	}
