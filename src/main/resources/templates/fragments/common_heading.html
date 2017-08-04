@@ -18,11 +18,15 @@
 			</div>
 		</script>
 		<script type="text/x-jsrender" id="confirmDialogTempalte">
-			<div id="{{:popupId}}" class="popup">
+			<div id="{{:popupId}}" class="popup confirmation">
 				<div class="container">
-					<div class="row">
-						<div class="twelve columns">{{:content}}</div>
-					</div>
+					{{if customStructure}}
+						{{:content}}
+					{{else}}
+						<div class="row">
+							<div class="twelve columns">{{:content}}</div>
+						</div>
+					{{/if}} 
 					<div class="row">&nbsp;</div>
 					<div class="row">
 						<div class="six columns">

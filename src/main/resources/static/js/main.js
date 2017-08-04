@@ -1,5 +1,62 @@
 var popupIndexCounter = 1;
 
+function unixts2date(unixts) { return new Date(unixts * 1000); }
+function date2unixts(date) { return Math.round(date.getTime()/1000); }
+
+function hslToHex(h, s, l) {
+	h /= 360;
+	s /= 100;
+	l /= 100;
+	var r, g, b;
+	if (s === 0) {
+		r = g = b = l; // achromatic
+	} else {
+		var hue2rgb = function(p, q, t) {
+			if (t < 0) t += 1;
+			if (t > 1) t -= 1;
+			if (t < 1 / 6) return p + (q - p) * 6 * t;
+			if (t < 1 / 2) return q;
+			if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+			return p;
+		};
+		var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+		var p = 2 * l - q;
+		r = hue2rgb(p, q, h + 1 / 3);
+		g = hue2rgb(p, q, h);
+		b = hue2rgb(p, q, h - 1 / 3);
+	}
+	var toHex = function(x) {
+		const hex = Math.round(x * 255).toString(16);
+		return hex.length === 1 ? '0' + hex : hex;
+	};
+	return '#' + toHex(r) + toHex(g) + toHex(b);
+}
+
+function uniqueColor(index) {
+	index = index + 1;
+	var divider = 1;
+	var element = 1;
+	while(index > 0) {
+		var options = Math.pow(2, divider-1);
+		if(divider>1) {
+			options -= Math.pow(2, divider-2);
+		}		
+		if(index>options) {
+			divider = divider * 2;
+			index = index - options;
+		} else {
+			element = index * 2;
+			index = 0;
+		}		
+	}
+	element = element - 1;
+	if(divider>1) {
+		return hslToHex(360/Math.pow(2, divider-1) * element, 100, 50);
+	} else {
+		return hslToHex(0, 100, 50);
+	}
+}
+
 function setLocale(locale) {
 	$.post(window.carpoolApp.siteBaseUrl + "/api/locale/" + locale + "?_csrf=" + window.carpoolApp.csrfToken, function() { window.location.reload(); });
 }
@@ -31,10 +88,10 @@ function showPopup(content) {
 	});
 }
 
-function showConfirmation(content, noLabel, yesLabel, callback) {
+function showConfirmation(content, noLabel, yesLabel, callback, customStructure) {
 	var popupId = 'popup_' + (popupIndexCounter++);	
 	var template = $.templates("#confirmDialogTempalte");
-	var popup = $(template.render({popupId: popupId, content: content, noButtonLabel: window.carpoolApp.l10n[noLabel], yesButtonLabel: window.carpoolApp.l10n[yesLabel] }));
+	var popup = $(template.render({popupId: popupId, content: content, noButtonLabel: window.carpoolApp.l10n[noLabel], yesButtonLabel: window.carpoolApp.l10n[yesLabel], customStructure: customStructure }));
 	
 	$(popup).find(".confirmButton").click(callback);
 
@@ -293,10 +350,13 @@ function validateField(fieldId, validations, formIds) {
 	}
 }
 
-function fixNumericInput(input) {
+function fixNumericInput(input, maxChars) {
 	if(input) {
 		if(input.value) {
 			var newVal = input.value.replace(/[^0-9]/g, '');
+			if(maxChars && newVal.length > maxChars) {
+				newVal = newVal.substring(0, maxChars);
+			}
 			if(newVal != input.value) {
 				input.value = newVal;
 			}

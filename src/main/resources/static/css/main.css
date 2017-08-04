@@ -21,6 +21,10 @@ button[disabled]:hover, button[disabled], input[type="button"][disabled], input[
 	border-radius: 8px;
 }
 
+.popup.confirmation .container {
+	min-width: 300px;
+}
+
 .waitIndicator {
 	display: none;
 }
@@ -45,14 +49,22 @@ label {
 }
 
 table input, table button {
-	margin-bottom: 0;
-	
+	margin-bottom: 0;	
 }
 
 table td {
 	padding: 12px 8px;
 }
 
-table button {
+table button, button.narrow {
 	padding: 0 14px;
+}
+
+hr {
+	margin-top: 0.5rem;
+	margin-bottom: 1rem;
+}
+
+.halfWidth {
+	width: 50%;	
 }
