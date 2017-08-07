@@ -97,7 +97,7 @@
 				var selectedStartM = parseInt($("#liftRequestStartTimeM").val());
 				var selectedEndH = parseInt($("#liftRequestEndTimeH").val());
 				var selectedEndM = parseInt($("#liftRequestEndTimeM").val());
-				// TODO: validate start/end time
+
 				if(selectedStartH > selectedEndH || selectedStartH == selectedEndH && selectedStartM > selectedEndM) {
 					showPopup(window.carpoolApp.l10n['error.start_time_after_end_time']);
 					event.stopPropagation();
