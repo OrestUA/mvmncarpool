@@ -164,11 +164,12 @@ public class LiftJoinRequestController {
 
 		LiftOffer liftOffer = liftOfferRepository.findOne(liftJoinRequestDTO.getLiftOfferId());
 		if (liftOffer == null) {
-			// TODO: not found
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			result.message = "Lift offer not found by provided ID";
 		} else {
 			if (liftOffer.getJoinRequests().stream().filter(ljr -> ljr.getUser().getId() == currentUser.getId()).count() > 0) {
-				// User already has join request TODO: bad request
-
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				result.message = "Lift joint request from current user already exists for this lift offer";
 			} else {
 				boolean driverInitiated = liftOffer.getUser().getId() == currentUser.getId();
 				User passenger;
@@ -178,7 +179,8 @@ public class LiftJoinRequestController {
 						liftRequest = liftRequestRepository.findOne(liftJoinRequestDTO.getLiftRequestId());
 					}
 					if (liftRequest == null) {
-						// TODO: bad request - must specify which lift request is this join offer for
+						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+						result.message = "Lift request not found - must be specified for driver initiated lift join requests";
 						return result;
 					} else {
 						passenger = liftRequest.getUser();
