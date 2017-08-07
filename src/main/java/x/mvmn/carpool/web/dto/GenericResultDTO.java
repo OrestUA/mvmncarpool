@@ -3,6 +3,7 @@ package x.mvmn.carpool.web.dto;
 public class GenericResultDTO {
 	public boolean success;
 	public String message;
+	public Object data;
 
 	public GenericResultDTO() {
 	}

@@ -42,8 +42,15 @@ waypoints.push({
 }
 
 var r = null;
-directionsService.route({origin: new google.maps.LatLng(markers[0].position.lat(),markers[0].position.lng()), destination: new google.maps.LatLng(markers[1].position.lat(),markers[1].position.lng()), travelMode: 'DRIVING', optimizeWaypoints: true }, function(directionsResult, status) { 
-directionsDisplay.setDirections(directionsResult); r = directionsResult; })
+directionsService.route({
+	origin: new google.maps.LatLng(markers[0].position.lat(),markers[0].position.lng()), 
+	destination: new google.maps.LatLng(markers[1].position.lat(),markers[1].position.lng()), 
+	travelMode: 'DRIVING', 
+	optimizeWaypoints: true 
+}, function(directionsResult, status) { 
+	directionsDisplay.setDirections(directionsResult); 
+	r = directionsResult; 
+});
 
 
 placesService = new google.maps.places.PlacesService(map);

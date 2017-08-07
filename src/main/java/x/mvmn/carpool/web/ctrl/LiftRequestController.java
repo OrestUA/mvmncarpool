@@ -118,9 +118,11 @@ public class LiftRequestController {
 			liftRequest.setTimeValidTo(liftRequestDTO.getTimeValidTo());
 			liftRequest.setNotes(liftRequestDTO.getNotes());
 			liftRequest.setAddress(liftRequestDTO.getAddress());
-			liftRequestRepository.save(liftRequest);
+			liftRequest.setPlaceId(liftRequestDTO.getPlaceId() != null && !liftRequestDTO.getPlaceId().trim().isEmpty() ? liftRequestDTO.getPlaceId() : null);
+			liftRequest = liftRequestRepository.save(liftRequest);
 			result.success = true;
 			result.message = "ok";
+			result.data = LiftRequestDTO.fromLiftRequest(liftRequest);
 		}
 
 		return result;

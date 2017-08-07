@@ -12,6 +12,7 @@ public class LiftRequestDTO {
 	protected int userId;
 	protected String address;
 	protected String notes;
+	protected String placeId;
 
 	public int getId() {
 		return id;
@@ -77,6 +78,14 @@ public class LiftRequestDTO {
 		this.address = address;
 	}
 
+	public String getPlaceId() {
+		return placeId;
+	}
+
+	public void setPlaceId(String placeId) {
+		this.placeId = placeId;
+	}
+
 	public static LiftRequestDTO fromLiftRequest(LiftRequest liftRequest) {
 		LiftRequestDTO result = new LiftRequestDTO();
 		result.setId(liftRequest.getId());
@@ -86,6 +95,7 @@ public class LiftRequestDTO {
 		result.setTimeValidTo(liftRequest.getTimeValidTo());
 		result.setNotes(liftRequest.getNotes());
 		result.setAddress(liftRequest.getAddress());
+		result.setPlaceId(liftRequest.getPlaceId());
 		result.setUserId(liftRequest.getUser().getId());
 
 		return result;

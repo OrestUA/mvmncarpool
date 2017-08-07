@@ -2,6 +2,10 @@
 	max-width: none;
 }
 
+h5 {
+	font-size: 2rem;
+} 
+
 .siteHeadingRow {
 	background: #d0ffb9;
 	border-radius: 16px;

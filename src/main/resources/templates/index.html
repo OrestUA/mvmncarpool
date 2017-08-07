@@ -18,12 +18,13 @@
 			centerMapOnCurrentLocation();
 			
 			window.carpoolApp.geocoder = new google.maps.Geocoder;
+			window.carpoolApp.placesService = new google.maps.places.PlacesService(window.carpoolApp.mainMap);
 			
 			window.carpoolApp.mainMap.addListener("click", function(event) {
 				PubSub.publish("global.mainMap.clicked", event);
 			});
 			
-			updateMyLiftRequests();
+			populateMyLiftRequests();
 		});
 
 		window.carpoolApp.loadedModules = [];
@@ -45,6 +46,7 @@
 		PubSub.subscribe("global.mainMap.clicked", function(msg, event) {
 			$("#requestLiftForm_lat").val(event.latLng.lat());
 			$("#requestLiftForm_lng").val(event.latLng.lng());
+			$("#requestLiftForm_placeId").val(event.placeId);
 			$("#requestLiftButton").removeAttr("disabled");
 			
 			if(window.carpoolApp.liftRequestMarker) {
@@ -66,11 +68,19 @@
 					}
 				});
 			
-			window.carpoolApp.geocoder.geocode({location:event.latLng}, function(results, status) {
-				if(status === 'OK' && results && results.length > 0) {
-					$("#requestLiftForm_address").val(results[0]['formatted_address']);
-				}
-			});
+			if(event.placeId) {
+				window.carpoolApp.placesService.getDetails({placeId: event.placeId}, function(details, status) {
+					if(status === 'OK' && details) { 
+						$("#requestLiftForm_address").val(details.name + ", " + details.formatted_address);
+					}
+				});
+			} else {
+				window.carpoolApp.geocoder.geocode({location:event.latLng}, function(results, status) {
+					if(status === 'OK' && results && results.length > 0) {
+						$("#requestLiftForm_address").val(results[0].formatted_address);
+					}
+				});
+			}
 		});
 		
 		function doRequestLift() {
@@ -90,7 +100,6 @@
 				lng: $("#requestLiftForm_lng").val(),
 				address: $("#requestLiftForm_address").val()
 			}
-			
 	
 			showConfirmation($.templates("#liftRequestFormTemplate").render(data), 'label.cancel', 'label.create', function(event) {
 				var selectedStartH = parseInt($("#liftRequestStartTimeH").val());
@@ -111,15 +120,27 @@
 					var data = {
 							lat : $("#requestLiftForm_lat").val(),
 							lon : $("#requestLiftForm_lng").val(),
+							placeId : $("#requestLiftForm_placeId").val(),
 							address : $("#requestLiftForm_address").val(),
 							timeValidFrom : date2unixts(startDate),
 							timeValidTo :  date2unixts(endDate),
 							notes : $("#liftRequestNotes").val()
 						};
 					
-					makeApiCall("/api/liftrequest", 'POST', data, function(genericResultDto) {
+					makeApiCall("/api/liftrequest", 'POST', data, function(result) {
+						var liftRequestIds = Object.keys(window.carpoolApp.liftRequests);
+						var maxIndex = 1;
+						for(var idx in liftRequestIds) {
+							var liftRequest = window.carpoolApp.liftRequests[liftRequestIds[idx]];
+							if(liftRequest.indexInList > maxIndex) {
+								maxIndex = liftRequest.indexInList;
+							}
+						}
+						
+						// actually we need maxIndex++, but indexInList is 1-based, and here we need 0-based, so +1-1 cancels out
+						addLiftRequestToList(maxIndex, result.data);  
 						showPopup(window.carpoolApp.l10n['label.liftrequest.createsuccess']);
-						updateMyLiftRequests();
+						$("#liftRequestListItem_showCheckbox"+result.data.id).click();
 					});
 				}
 			}, true);
@@ -137,7 +158,7 @@
 			return result;
 		}
 		
-		function updateMyLiftRequests() {
+		function populateMyLiftRequests() {
 			if(window.carpoolApp.liftRequestMarkers) {
 				for(var kidx in Object.keys(window.carpoolApp.liftRequestMarkers)) {
 					showHideLiftRequestOnMap(false, Object.keys(window.carpoolApp.liftRequestMarkers)[kidx]);
@@ -149,12 +170,7 @@
 				$("#myLiftRequestsContainer").html('');
 				window.carpoolApp.liftRequests = {};
 				for(var idx in liftRequests) {
-					window.carpoolApp.liftRequests[liftRequests[idx].id] = liftRequests[idx];
-					liftRequests[idx].indexInList = parseInt(idx) + 1;
-					liftRequests[idx].color = uniqueColor(idx, 100, 40);
-					liftRequests[idx].validFrom = fmtDateShortest(unixts2date(liftRequests[idx].timeValidFrom));
-					liftRequests[idx].validTo = fmtDateShortest(unixts2date(liftRequests[idx].timeValidTo));
-					$("#myLiftRequestsContainer").append($.templates("#liftRequestListRowTemplate").render(liftRequests[idx]));
+					addLiftRequestToList(idx, liftRequests[idx]);
 				}
 				
 				makeApiCall("/api/liftjoinrequest/received?actualOnly=true&driverInitiated=true", "GET", null, function(liftJoinRequests) {
@@ -162,6 +178,15 @@
 					// TODO: show join requests from drivers beside corresponding lift requests
 				});
 			}, function(xhr, status, error) { $("#myLiftRequestsContainer").html(xhr.responseJSON? (exclamationSign + " " + xhr.responseJSON.message) : (exclamationSign + " " + xhr.statusText + " " + xhr.status)); });
+		}
+		
+		function addLiftRequestToList(index, data) {
+			window.carpoolApp.liftRequests[data.id] = data;
+			data.indexInList = parseInt(index) + 1;
+			data.color = uniqueColor(parseInt(index), 100, 40);
+			data.validFrom = fmtDateShortest(unixts2date(data.timeValidFrom));
+			data.validTo = fmtDateShortest(unixts2date(data.timeValidTo));
+			$("#myLiftRequestsContainer").append($.templates("#liftRequestListRowTemplate").render(data));
 		}
 		
 		function deleteLiftRequest(liftRequestId) {
@@ -174,28 +199,32 @@
 			});
 		}
 		
-		function showHideLiftRequestOnMap(show, liftRequestId, lat, lng, color) {
+		function showHideLiftRequestOnMap(show, liftRequestId, lat, lng, color, placeId) {
 			if(show) {
-				window.carpoolApp.liftRequestMarkers[liftRequestId] = new google.maps.Marker({ 
-					position: new google.maps.LatLng(lat, lng), 
-					map: window.carpoolApp.mainMap, 
-					draggable: false,
-					clickable: false,
-					label: {
-						text: "" + window.carpoolApp.liftRequests[liftRequestId].indexInList,
-						color: "white",
-						fontWeight: "bold"
-					},
-					icon: {
-						path: google.maps.SymbolPath.BACKWARD_OPEN_ARROW,
-						scale: 5,
-						fillColor: color,
-						strokeColor: color,
-						fillOpacity: 0.5,
-						strokeWeight: 1,
-						labelOrigin: {x:0, y:-3}
-					}
-				});
+				var data = { 
+						position: new google.maps.LatLng(lat, lng), 
+						map: window.carpoolApp.mainMap, 
+						draggable: false,
+						clickable: true,
+						label: {
+							text: "" + window.carpoolApp.liftRequests[liftRequestId].indexInList,
+							color: "white",
+							fontWeight: "bold"
+						},
+						icon: {
+							path: google.maps.SymbolPath.BACKWARD_OPEN_ARROW,
+							scale: 5,
+							fillColor: color,
+							strokeColor: color,
+							fillOpacity: 0.5,
+							strokeWeight: 1,
+							labelOrigin: {x:0, y:-3}
+						}
+					};
+				if(placeId) {
+					data.place = { placeId: placeId, location: new google.maps.LatLng(lat, lng) };
+				}
+				window.carpoolApp.liftRequestMarkers[liftRequestId] = new google.maps.Marker(data);
 				window.carpoolApp.mainMap.setCenter(new google.maps.LatLng(lat, lng));
 			} else {
 				if(window.carpoolApp.liftRequestMarkers[liftRequestId]) {
@@ -215,10 +244,11 @@
 				<div id="mapContainer"></div>
 			</div>
 			<div class="four columns">
-				<!-- FIXME: localize, implement -->
-				<button class="u-full-width" onclick="">offer lift</button>
-				<hr/>
-				<h5 th:text="#{label.chosen_location}"/></h5>
+				<h5>
+					[[ #{label.chosen_location} ]]
+					<i class="fa fa-caret-down" aria-hidden="true" id="requestLiftForm_hider" onclick="toggleCollapse('requestLiftForm')"></i>
+					<i class="fa fa-caret-left" aria-hidden="true" style="display: none" id="requestLiftForm_revealer" onclick="toggleCollapse('requestLiftForm')"></i>				
+				</h5>
 				<script type="text/x-jsrender" id="liftRequestFormTemplate">
 					<div class="row"><h5>[[ #{label.lift_request} ]]</h5></div>
 					<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:lat}}&nbsp;:&nbsp;{{:lng}}</div></div>
@@ -252,19 +282,24 @@
 				</script>
 				<div id="requestLiftForm" style="display: block" class="u-full-width">
 					<label class="u-full-width" th:text="#{label.coordinates}"></label>
+					<input readonly="readonly" id="requestLiftForm_placeId" style="display: none" type="text" />
 					<input readonly="readonly" id="requestLiftForm_lat" style="width: 46%" type="text" />
-					<input readonly="readonly" id="requestLiftForm_lng" style="width: 46%" type="text" />
+					<input readonly="readonly" id="requestLiftForm_lng" style="width: 46%" type="text" class="u-pull-right" />
 					<label class="u-full-width" th:text="#{label.address}"></label>
 					<input readonly="readonly" id="requestLiftForm_address" class="u-full-width" type="text" />
+					<button class="u-full-width" onclick="doRequestLift()" id="requestLiftButton" disabled="disabled" th:text="#{label.request_lift}"></button>
 				</div>
-				<button class="u-full-width" onclick="doRequestLift()" id="requestLiftButton" disabled="disabled" th:text="#{label.request_lift}"></button>
 				<hr/>
-				<h5 th:text="#{label.my_lift_requests}"/></h5>
+				<h5>
+					[[ #{label.my_lift_requests} ]]
+					<i class="fa fa-caret-down" aria-hidden="true" id="myLiftRequestsContainer_hider" onclick="toggleCollapse('myLiftRequestsContainer')"></i>
+					<i class="fa fa-caret-left" aria-hidden="true" style="display: none" id="myLiftRequestsContainer_revealer" onclick="toggleCollapse('myLiftRequestsContainer')"></i>				
+				</h5>
 				<script type="text/x-jsrender" id="liftRequestListRowTemplate">
 					<div class="u-full-width" id="liftRequestsList_{{:id}}">
 						<div class="u-full-width">
 							<div style="display: inline-block; font-weight: bold; padding: 4px; color: white; background-color: {{:color}}">#{{:indexInList}}</div>
-							<input type="checkbox" onclick="showHideLiftRequestOnMap(this.checked, {{:id}}, {{:lat}}, {{:lon}}, '{{:color}}')" />&nbsp;[[ #{label.show_on_map} ]]
+							<input type="checkbox" id="liftRequestListItem_showCheckbox{{:id}}" onclick="showHideLiftRequestOnMap(this.checked, {{:id}}, {{:lat}}, {{:lon}}, '{{:color}}', '{{:placeId}}')" />&nbsp;[[ #{label.show_on_map} ]]
 							<span style="color: {{:color}}; display: inline-block"><i class="fa fa-map-marker" aria-hidden="true"></i></span>
 							<div style="display: inline-block" class="u-pull-right">
 								<button id="btnDeleteLiftRequest_{{:id}}" class="narrow" onclick="deleteLiftRequest({{:id}})">X <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -278,6 +313,18 @@
 				</script>
 				<div id="myLiftRequestsContainer" class="u-full-width">
 					<div class="u-full-width" style="text-align: center"><i class="fa fa-circle-o-notch fa-spin fa-fw"></i></div>
+				</div>
+				<hr/>
+				<h5>
+					[[ #{label.my_lift_offers} ]]
+					<i class="fa fa-caret-down" aria-hidden="true" id="myLiftOffersContainer_hider" onclick="toggleCollapse('myLiftOffersContainer')"></i>
+					<i class="fa fa-caret-left" aria-hidden="true" style="display: none" id="myLiftOffersContainer_revealer" onclick="toggleCollapse('myLiftOffersContainer')"></i>				
+				</h5>
+				<div id="myLiftOffersContainer">
+					<div class="u-full-width">
+						
+					</div>
+					<button class="u-full-width" onclick="">[[ #{label.offer_lift} ]]</button>
 				</div>
 			</div>
 		</div>

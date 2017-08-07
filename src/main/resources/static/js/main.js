@@ -121,7 +121,15 @@ function makeApiCall(url, method, data, success, failure, complete) {
 	headers['Content-Type'] = 'application/json';
 	
 	if(!failure) {
-		failure = function(xhr, status, error) { if(xhr.responseJSON) { showPopup(exclamationSign + " " + xhr.responseJSON.message); } else { showPopup(exclamationSign + " " + xhr.statusText + " " + xhr.status); } }
+		failure = function(xhr, status, error) { 
+			if(xhr.responseJSON) { 
+				showPopup(exclamationSign + " " + xhr.responseJSON.message); 
+			} else if(xhr.responseText) { 
+				showPopup(exclamationSign + " " + xhr.statusText + " " + xhr.responseText); 
+			} else { 
+				showPopup(exclamationSign + " " + xhr.statusText + " " + xhr.status); 
+			} 
+		}
 	}
 	
 	$.ajax({

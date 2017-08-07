@@ -15,6 +15,7 @@ public class LiftRequest {
 	protected long timeValidTo;
 	protected double lat;
 	protected double lon;
+	protected String placeId;
 	protected String address;
 	protected String notes;
 
@@ -83,5 +84,13 @@ public class LiftRequest {
 
 	public void setAddress(String address) {
 		this.address = address;
+	}
+
+	public String getPlaceId() {
+		return placeId;
+	}
+
+	public void setPlaceId(String placeId) {
+		this.placeId = placeId;
 	}
 }
