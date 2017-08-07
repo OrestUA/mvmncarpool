@@ -13,6 +13,7 @@ public class RouteWaypoint {
 	protected Route route;
 	protected double lat;
 	protected double lon;
+	protected boolean userSpecified;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -47,5 +48,13 @@ public class RouteWaypoint {
 
 	public void setLon(double lon) {
 		this.lon = lon;
+	}
+
+	public boolean isUserSpecified() {
+		return userSpecified;
+	}
+
+	public void setUserSpecified(boolean userSpecified) {
+		this.userSpecified = userSpecified;
 	}
 }
