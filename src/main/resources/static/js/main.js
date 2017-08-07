@@ -32,9 +32,15 @@ function hslToHex(h, s, l) {
 	return '#' + toHex(r) + toHex(g) + toHex(b);
 }
 
-function uniqueColor(index) {
+function uniqueColor(index, saturation, lightness) {
 	var divider = 1;
 	var element = 1;
+	if(!saturation || saturation<0) {
+		saturation = 100;
+	}
+	if(!lightness || lightness<0) {
+		lightness = 50;
+	}
 	while(index > 0) {
 		var options = Math.pow(2, divider-1);
 		if(divider>1) {
@@ -50,9 +56,9 @@ function uniqueColor(index) {
 		}		
 	}
 	if(divider>1) {
-		return hslToHex(360/Math.pow(2, divider-1) * element, 100, 50);
+		return hslToHex(360/Math.pow(2, divider-1) * element, saturation, lightness);
 	} else {
-		return hslToHex(0, 100, 50);
+		return hslToHex(0, saturation, lightness);
 	}
 }
 

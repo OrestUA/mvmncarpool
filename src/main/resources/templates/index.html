@@ -147,14 +147,21 @@
 			$("#myLiftRequestsContainer").html('<div class="u-full-width" style="text-align: center"><i class="fa fa-circle-o-notch fa-spin fa-fw"></i></div>');
 			makeApiCall("/api/liftrequest?ownOnly=true&activeOnly=true", 'GET', null, function(liftRequests) {
 				$("#myLiftRequestsContainer").html('');
+				window.carpoolApp.liftRequests = {};
 				for(var idx in liftRequests) {
-					liftRequests[idx].indexInList = idx;
-					liftRequests[idx].color = uniqueColor(idx);
+					window.carpoolApp.liftRequests[liftRequests[idx].id] = liftRequests[idx];
+					liftRequests[idx].indexInList = parseInt(idx) + 1;
+					liftRequests[idx].color = uniqueColor(idx, 100, 40);
 					liftRequests[idx].validFrom = fmtDateShortest(unixts2date(liftRequests[idx].timeValidFrom));
 					liftRequests[idx].validTo = fmtDateShortest(unixts2date(liftRequests[idx].timeValidTo));
 					$("#myLiftRequestsContainer").append($.templates("#liftRequestListRowTemplate").render(liftRequests[idx]));
 				}
-			}, function(xhr, status, error) { $("#myLiftRequestsContainer").html(xhr.responseJSON? (exclamationSign + " " + xhr.responseJSON.message) : (exclamationSign + " " + xhr.statusText + " " + xhr.status)); })
+				
+				makeApiCall("/api/liftjoinrequest/received?actualOnly=true&driverInitiated=true", "GET", null, function(liftJoinRequests) {
+					console.log("liftJoinRequests = " + liftJoinRequests);
+					// TODO: show join requests from drivers beside corresponding lift requests
+				});
+			}, function(xhr, status, error) { $("#myLiftRequestsContainer").html(xhr.responseJSON? (exclamationSign + " " + xhr.responseJSON.message) : (exclamationSign + " " + xhr.statusText + " " + xhr.status)); });
 		}
 		
 		function deleteLiftRequest(liftRequestId) {
@@ -174,13 +181,19 @@
 					map: window.carpoolApp.mainMap, 
 					draggable: false,
 					clickable: false,
+					label: {
+						text: "" + window.carpoolApp.liftRequests[liftRequestId].indexInList,
+						color: "white",
+						fontWeight: "bold"
+					},
 					icon: {
 						path: google.maps.SymbolPath.BACKWARD_OPEN_ARROW,
 						scale: 5,
 						fillColor: color,
 						strokeColor: color,
 						fillOpacity: 0.5,
-						strokeWeight: 1
+						strokeWeight: 1,
+						labelOrigin: {x:0, y:-3}
 					}
 				});
 				window.carpoolApp.mainMap.setCenter(new google.maps.LatLng(lat, lng));
@@ -250,9 +263,10 @@
 				<script type="text/x-jsrender" id="liftRequestListRowTemplate">
 					<div class="u-full-width" id="liftRequestsList_{{:id}}">
 						<div>
-							<button id="btnDeleteLiftRequest_{{:id}}" class="narrow" onclick="deleteLiftRequest({{:id}})">X <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+							<div style="display: inline-block; font-weight: bold; padding: 4px; color: white; background-color: {{:color}}">#{{:indexInList}}</div>
 							<input type="checkbox" onclick="showHideLiftRequestOnMap(this.checked, {{:id}}, {{:lat}}, {{:lon}}, '{{:color}}')" />&nbsp;[[ #{label.show_on_map} ]]
 							<span style="color: {{:color}}; display: inline-block"><i class="fa fa-map-marker" aria-hidden="true"></i></span>
+							<button id="btnDeleteLiftRequest_{{:id}}" class="narrow" onclick="deleteLiftRequest({{:id}})">X <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i></button>
 						</div>
 						<div>{{:address}}</div>
 						<div>{{:validFrom}}&nbsp;-&nbsp;{{:validTo}}</div>
