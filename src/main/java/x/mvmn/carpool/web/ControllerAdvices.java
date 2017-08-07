@@ -49,7 +49,7 @@ public class ControllerAdvices {
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	public ModelAndView handleGenericError(Exception e) {
 		ModelAndView mav = new ModelAndView("internalerror");
-		LOGGER.error().exception("Unhandled exception occurred", e);
+		LOGGER.error().exception("Unhandled exception occurred", e).log();
 		mav.addObject("error", e);
 		return mav;
 	}
