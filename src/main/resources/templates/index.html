@@ -172,6 +172,7 @@
 				for(var idx in liftRequests) {
 					addLiftRequestToList(idx, liftRequests[idx]);
 				}
+				$(".liftRequestListItemShowCheckbox").click();
 				
 				makeApiCall("/api/liftjoinrequest/received?actualOnly=true&driverInitiated=true", "GET", null, function(liftJoinRequests) {
 					console.log("liftJoinRequests = " + liftJoinRequests);
@@ -299,7 +300,7 @@
 					<div class="u-full-width" id="liftRequestsList_{{:id}}">
 						<div class="u-full-width">
 							<div style="display: inline-block; font-weight: bold; padding: 4px; color: white; background-color: {{:color}}">#{{:indexInList}}</div>
-							<input type="checkbox" id="liftRequestListItem_showCheckbox{{:id}}" onclick="showHideLiftRequestOnMap(this.checked, {{:id}}, {{:lat}}, {{:lon}}, '{{:color}}', '{{:placeId}}')" />&nbsp;[[ #{label.show_on_map} ]]
+							<input type="checkbox" class="liftRequestListItemShowCheckbox" id="liftRequestListItem_showCheckbox{{:id}}" onclick="showHideLiftRequestOnMap(this.checked, {{:id}}, {{:lat}}, {{:lon}}, '{{:color}}', '{{:placeId}}')" />&nbsp;[[ #{label.show_on_map} ]]
 							<span style="color: {{:color}}; display: inline-block"><i class="fa fa-map-marker" aria-hidden="true"></i></span>
 							<div style="display: inline-block" class="u-pull-right">
 								<button id="btnDeleteLiftRequest_{{:id}}" class="narrow" onclick="deleteLiftRequest({{:id}})">X <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i></button>
