@@ -33,7 +33,6 @@ function hslToHex(h, s, l) {
 }
 
 function uniqueColor(index) {
-	index = index + 1;
 	var divider = 1;
 	var element = 1;
 	while(index > 0) {
@@ -41,15 +40,15 @@ function uniqueColor(index) {
 		if(divider>1) {
 			options -= Math.pow(2, divider-2);
 		}		
-		if(index>options) {
-			divider = divider * 2;
+		
+		if(index>=options) {
+			divider++;
 			index = index - options;
 		} else {
-			element = index * 2;
+			element = (index+1) * 2 - 1;
 			index = 0;
 		}		
 	}
-	element = element - 1;
 	if(divider>1) {
 		return hslToHex(360/Math.pow(2, divider-1) * element, 100, 50);
 	} else {

@@ -43,7 +43,6 @@
 		});
 		
 		PubSub.subscribe("global.mainMap.clicked", function(msg, event) {
-			console.log('clicked at ' + event.latLng.lat() + ":" + event.latLng.lng());
 			$("#requestLiftForm_lat").val(event.latLng.lat());
 			$("#requestLiftForm_lng").val(event.latLng.lng());
 			$("#requestLiftButton").removeAttr("disabled");
@@ -62,7 +61,7 @@
 						scale: 6,
 						fillColor: "green",
 						strokeColor: "black",
-						fillOpacity: 1,
+						fillOpacity: 0.5,
 						strokeWeight: 1
 					}
 				});
@@ -170,7 +169,7 @@
 						scale: 5,
 						fillColor: color,
 						strokeColor: color,
-						fillOpacity: 1,
+						fillOpacity: 0.5,
 						strokeWeight: 1
 					}
 				});
