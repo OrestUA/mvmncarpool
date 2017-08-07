@@ -262,11 +262,13 @@
 				<h5 th:text="#{label.my_lift_requests}"/></h5>
 				<script type="text/x-jsrender" id="liftRequestListRowTemplate">
 					<div class="u-full-width" id="liftRequestsList_{{:id}}">
-						<div>
+						<div class="u-full-width">
 							<div style="display: inline-block; font-weight: bold; padding: 4px; color: white; background-color: {{:color}}">#{{:indexInList}}</div>
 							<input type="checkbox" onclick="showHideLiftRequestOnMap(this.checked, {{:id}}, {{:lat}}, {{:lon}}, '{{:color}}')" />&nbsp;[[ #{label.show_on_map} ]]
 							<span style="color: {{:color}}; display: inline-block"><i class="fa fa-map-marker" aria-hidden="true"></i></span>
-							<button id="btnDeleteLiftRequest_{{:id}}" class="narrow" onclick="deleteLiftRequest({{:id}})">X <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+							<div style="display: inline-block" class="u-pull-right">
+								<button id="btnDeleteLiftRequest_{{:id}}" class="narrow" onclick="deleteLiftRequest({{:id}})">X <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+							</div>
 						</div>
 						<div>{{:address}}</div>
 						<div>{{:validFrom}}&nbsp;-&nbsp;{{:validTo}}</div>
