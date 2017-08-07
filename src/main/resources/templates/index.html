@@ -80,32 +80,20 @@
 			var startM = now.getMinutes();
 			var endH = (startH + 1 ) % 24;
 			var endM = startM;
-			var content = [];
-			// FIXME: jsrender tempalte, localize
-			content.push('<div class="row"><h5>Запит підвезти</h5></div>');
-			content.push('<div class="row"><div class="twelve columns"><b>Координати</b>: ' + $("#requestLiftForm_lat").val() + '&nbsp;:&nbsp;' + $("#requestLiftForm_lng").val() + '</div></div>');
-			content.push('<div class="row"><div class="twelve columns"><b>Адреса</b>: ' + $("#requestLiftForm_address").val() + '</div></div>');
-			content.push('<div class="row"><div class="twelve columns"><b>Дійсний</b></div></div>');
-			content.push('<div class="row"><div class="six columns">від (год/хв)</div><div class="six columns">до (год/хв)</div></div>');
-			content.push('<div class="row">');
-			content.push('<div class="three columns"><select class="u-full-width" id="liftRequestStartTimeH" onkeyup="fixNumericInput(this, 2)">');
-			for(var i=0;i<24;i++) { content.push('<option value="'+i+'" '+ (i == startH? 'selected="selected"':'') + '>' + (i<10? '0' + i : '' + i) + '</option>'); }
-			content.push('</select></div>');
-			content.push('<div class="three columns"><select class="u-full-width" id="liftRequestStartTimeM" onkeyup="fixNumericInput(this, 2)">');
-			for(var i=0;i<60;i++) { content.push('<option value="'+i+'" '+ (i == startM? 'selected="selected"':'') + '>' + (i<10? '0' + i : '' + i) + '</option>'); }
-			content.push('</select></div>');
-			content.push('<div class="three columns"><select class="u-full-width" id="liftRequestEndTimeH" onkeyup="fixNumericInput(this, 2)">');
-			for(var i=0;i<24;i++) { content.push('<option value="'+i+'" '+ (i == endH? 'selected="selected"':'') + '>' + (i<10? '0' + i : '' + i) + '</option>'); }
-			content.push('</select></div>');
-			content.push('<div class="three columns"><select class="u-full-width" id="liftRequestEndTimeM" onkeyup="fixNumericInput(this, 2)">');
-			for(var i=0;i<60;i++) { content.push('<option value="'+i+'" '+ (i == endM? 'selected="selected"':'') + '>' + (i<10? '0' + i : '' + i) + '</option>'); }
-			content.push('</select></div>');
-			content.push('</div>');
-			content.push('<div class="row"><div class="twelve columns"><b>Примітки</b></div></div>');
-			content.push('<div class="row"><div class="twelve columns"><input class="u-full-width" type="text" id="liftRequestNotes" /></div></div>');
+			var hourOptions = [];
+			for(var i=0;i<24;i++) { hourOptions.push({value: i, text: (i<10? '0' + i : '' + i), startSelected: i == startH, endSelected: i == endH }); }
+			var minuteOptions = [];
+			for(var i=0;i<60;i++) { minuteOptions.push({value: i, text: (i<10? '0' + i : '' + i), startSelected: i == startM, endSelected: i == endM }); }
+			var data = {
+				hourOptions: hourOptions,
+				minuteOptions: minuteOptions,
+				lat: $("#requestLiftForm_lat").val(),
+				lng: $("#requestLiftForm_lng").val(),
+				address: $("#requestLiftForm_address").val()
+			}
 			
 			// TODO: validate start/end time
-			showConfirmation(content.join('\n'), 'label.cancel', 'label.create', function() {
+			showConfirmation($.templates("#liftRequestFormTemplate").render(data), 'label.cancel', 'label.create', function() {
 				var startDate = new Date();
 				startDate.setHours($("#liftRequestStartTimeH").val());
 				startDate.setMinutes($("#liftRequestStartTimeM").val());
@@ -209,6 +197,37 @@
 				<button class="u-full-width" onclick="">offer lift</button>
 				<hr/>
 				<h5 th:text="#{label.chosen_location}"/></h5>
+				<script type="text/x-jsrender" id="liftRequestFormTemplate">
+					<div class="row"><h5>[[ #{label.lift_request} ]]</h5></div>
+					<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:lat}}&nbsp;:&nbsp;{{:lng}}</div></div>
+					<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:address}}</div></div>
+					<div class="row"><div class="twelve columns"><b>[[ #{label.request_time} ]]</b></div></div>
+					<div class="row"><div class="six columns">[[ #{label.from_hm} ]]</div><div class="six columns">[[ #{label.to_hm} ]]</div></div>
+					<div class="row">
+					<div class="three columns"><select class="u-full-width" id="liftRequestStartTimeH" onkeyup="fixNumericInput(this, 2)">
+					{{for hourOptions}}
+						<option value="{{:value}}" {{if startSelected}}selected="selected"{{/if}}>{{:text}}</option>
+					{{/for}}
+					</select></div>
+					<div class="three columns"><select class="u-full-width" id="liftRequestStartTimeM" onkeyup="fixNumericInput(this, 2)">
+					{{for minuteOptions}}
+						<option value="{{:value}}" {{if startSelected}}selected="selected"{{/if}}>{{:text}}</option>
+					{{/for}}
+					</select></div>
+					<div class="three columns"><select class="u-full-width" id="liftRequestEndTimeH" onkeyup="fixNumericInput(this, 2)">
+					{{for hourOptions}}
+						<option value="{{:value}}" {{if endSelected}}selected="selected"{{/if}}>{{:text}}</option>
+					{{/for}}
+					</select></div>
+					<div class="three columns"><select class="u-full-width" id="liftRequestEndTimeM" onkeyup="fixNumericInput(this, 2)">
+					{{for minuteOptions}}
+						<option value="{{:value}}" {{if endSelected}}selected="selected"{{/if}}>{{:text}}</option>
+					{{/for}}
+					</select></div>
+					</div>
+					<div class="row"><div class="twelve columns"><b>[[ #{label.notes} ]]</b></div></div>
+					<div class="row"><div class="twelve columns"><input class="u-full-width" type="text" id="liftRequestNotes" /></div></div>
+				</script>
 				<div id="requestLiftForm" style="display: block" class="u-full-width">
 					<label class="u-full-width" th:text="#{label.coordinates}"></label>
 					<input readonly="readonly" id="requestLiftForm_lat" style="width: 46%" type="text" />
