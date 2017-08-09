@@ -3,6 +3,8 @@ package x.mvmn.carpool.web;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -13,9 +15,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.NoHandlerFoundException;
-
-import com.savoirtech.logging.slf4j.json.LoggerFactory;
-import com.savoirtech.logging.slf4j.json.logger.Logger;
 
 import x.mvmn.carpool.web.service.WebHelperService;
 
@@ -49,7 +48,7 @@ public class ControllerAdvices {
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	public ModelAndView handleGenericError(Exception e) {
 		ModelAndView mav = new ModelAndView("internalerror");
-		LOGGER.error().exception("Unhandled exception occurred", e).log();
+		LOGGER.error("Unhandled exception occurred", e);
 		mav.addObject("error", e);
 		return mav;
 	}

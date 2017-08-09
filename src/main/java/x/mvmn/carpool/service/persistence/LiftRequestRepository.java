@@ -4,10 +4,12 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 
 import x.mvmn.carpool.model.LiftRequest;
 
@@ -29,4 +31,8 @@ public interface LiftRequestRepository extends JpaRepository<LiftRequest, Intege
 			}
 		};
 	}
+
+	@Modifying
+	@Transactional
+	public int deleteByTimeValidToLessThan(long timeValidToCap);
 }

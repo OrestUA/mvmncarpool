@@ -22,6 +22,8 @@ import x.mvmn.carpool.model.LiftJoinRequest;
 import x.mvmn.carpool.model.LiftOffer;
 import x.mvmn.carpool.model.LiftRequest;
 import x.mvmn.carpool.model.User;
+import x.mvmn.carpool.service.EventService;
+import x.mvmn.carpool.service.EventService.StateChangeType;
 import x.mvmn.carpool.service.persistence.LiftJoinRequestRepository;
 import x.mvmn.carpool.service.persistence.LiftOfferRepository;
 import x.mvmn.carpool.service.persistence.LiftRequestRepository;
@@ -44,6 +46,9 @@ public class LiftJoinRequestController {
 
 	@Autowired
 	UserRepository userRepository;
+
+	@Autowired
+	EventService eventService;
 
 	@RequestMapping(path = "/api/liftjoinrequest/issued", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasRole('ROLE_USER')")
@@ -98,15 +103,15 @@ public class LiftJoinRequestController {
 		return doApproveOrRejectRequest(requestId, UserUtil.getCurrentUser(auth).getId(), response, false);
 	}
 
-	protected @ResponseBody GenericResultDTO doApproveOrRejectRequest(int requestId, int currentUserId, HttpServletResponse response, boolean approve) {
+	protected GenericResultDTO doApproveOrRejectRequest(int requestId, int currentUserId, HttpServletResponse response, boolean approve) {
 		GenericResultDTO result = new GenericResultDTO();
 		result.success = false;
 
 		LiftJoinRequest ljr = liftJoinRequestRepository.findOne(requestId);
 		if (ljr != null) {
 			// I can approve/reject if:
-			// A - driver created request for me to join;
-			// B - passenger created request and I'm the driver.
+			// A - driver created request for me to join, thus I'm the passenger;
+			// B - passenger created request to join my LiftOffer, thus I'm the driver.
 			if (ljr.isDriverInitiated() && ljr.getUser().getId() == currentUserId
 					|| !ljr.isDriverInitiated() && ljr.getOffer().getUser().getId() == currentUserId) {
 				ljr.setApproved(approve);
@@ -114,6 +119,8 @@ public class LiftJoinRequestController {
 
 				result.success = true;
 				result.message = "ok";
+
+				eventService.notifyLiftJoinRequestStateChange(approve ? StateChangeType.ACCEPTED : StateChangeType.REJECTED, !ljr.isDriverInitiated(), ljr);
 			} else {
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 				result.message = "You cannot approve/reject lift join request that was not created for you";
@@ -127,7 +134,7 @@ public class LiftJoinRequestController {
 	}
 
 	@RequestMapping(path = "/api/liftjoinrequest/{id}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
-	protected @ResponseBody GenericResultDTO deleteRequest(int requestId, Authentication auth, HttpServletResponse response, boolean approve) {
+	protected @ResponseBody GenericResultDTO deleteRequest(int requestId, Authentication auth, HttpServletResponse response) {
 		int currentUserId = UserUtil.getCurrentUser(auth).getId();
 		GenericResultDTO result = new GenericResultDTO();
 		result.success = false;
@@ -140,6 +147,8 @@ public class LiftJoinRequestController {
 			if (ljr.isDriverInitiated() && ljr.getOffer().getUser().getId() == currentUserId
 					|| !ljr.isDriverInitiated() && ljr.getUser().getId() == currentUserId) {
 				liftJoinRequestRepository.delete(ljr);
+
+				eventService.notifyLiftJoinRequestStateChange(StateChangeType.DELETED, ljr.isDriverInitiated(), ljr);
 
 				result.success = true;
 				result.message = "ok";
@@ -156,7 +165,7 @@ public class LiftJoinRequestController {
 	}
 
 	@RequestMapping(path = "/api/liftjoinrequest", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody GenericResultDTO issueLiftJoinRequest(Authentication auth, HttpServletResponse response,
+	public @ResponseBody GenericResultDTO createLiftJoinRequest(Authentication auth, HttpServletResponse response,
 			@RequestBody LiftJoinRequestDTO liftJoinRequestDTO) {
 		User currentUser = UserUtil.getCurrentUser(auth);
 		GenericResultDTO result = new GenericResultDTO();
@@ -169,7 +178,7 @@ public class LiftJoinRequestController {
 		} else {
 			if (liftOffer.getJoinRequests().stream().filter(ljr -> ljr.getUser().getId() == currentUser.getId()).count() > 0) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				result.message = "Lift joint request from current user already exists for this lift offer";
+				result.message = "Lift join request from current user already exists for this lift offer";
 			} else {
 				boolean driverInitiated = liftOffer.getUser().getId() == currentUser.getId();
 				User passenger;
@@ -177,10 +186,15 @@ public class LiftJoinRequestController {
 				if (driverInitiated) {
 					if (liftJoinRequestDTO.getLiftRequestId() != null) {
 						liftRequest = liftRequestRepository.findOne(liftJoinRequestDTO.getLiftRequestId());
+						if (liftRequest.getUser().getId() == currentUser.getId()) {
+							// Effectively same as find lift request where user is not current user
+							// This is to avoid driver and passenger being same person (skip own lift requests)
+							liftRequest = null;
+						}
 					}
 					if (liftRequest == null) {
 						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-						result.message = "Lift request not found - must be specified for driver initiated lift join requests";
+						result.message = "Lift request not found - must be specified for driver initiated lift join requests (lift request must not belong to current user - can't be both driver and passenger)";
 						return result;
 					} else {
 						passenger = liftRequest.getUser();
@@ -197,6 +211,8 @@ public class LiftJoinRequestController {
 				liftJoinRequestRepository.save(ljr);
 				result.success = true;
 				result.message = "ok";
+
+				eventService.notifyLiftJoinRequestStateChange(StateChangeType.CREATED, !ljr.isDriverInitiated(), ljr);
 			}
 		}
 

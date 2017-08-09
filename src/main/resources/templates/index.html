@@ -39,10 +39,6 @@
 			PubSub.publish("global.module.load.googleMaps");
 		}
 		
-		$(document).ready(function () {
-			PubSub.publish("global.module.load.document");
-		});
-		
 		PubSub.subscribe("global.mainMap.clicked", function(msg, event) {
 			$("#requestLiftForm_lat").val(event.latLng.lat());
 			$("#requestLiftForm_lng").val(event.latLng.lng());

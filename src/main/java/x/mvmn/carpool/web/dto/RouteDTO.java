@@ -1,18 +1,12 @@
-package x.mvmn.carpool.model;
+package x.mvmn.carpool.web.dto;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderColumn;
+import x.mvmn.carpool.model.DrivePath;
+import x.mvmn.carpool.model.Route;
 
-@Entity
-public class Route implements DrivePath {
+public class RouteDTO implements DrivePath {
 
 	protected int id;
 	protected String title;
@@ -21,11 +15,9 @@ public class Route implements DrivePath {
 	protected double startLon;
 	protected double endLat;
 	protected double endLon;
-	protected List<RouteWaypoint> waypoints;
-	protected User user;
+	protected List<RouteWaypointDTO> waypoints;
+	protected int userId;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
 	public int getId() {
 		return id;
 	}
@@ -82,22 +74,35 @@ public class Route implements DrivePath {
 		this.endLon = endLon;
 	}
 
-	@OneToMany(cascade = { CascadeType.REMOVE }, mappedBy = "route")
-	@OrderColumn(name = "waypoint_index")
-	public List<RouteWaypoint> getWaypoints() {
+	public List<RouteWaypointDTO> getWaypoints() {
 		return waypoints;
 	}
 
-	public void setWaypoints(List<RouteWaypoint> waypoints) {
+	public void setWaypoints(List<RouteWaypointDTO> waypoints) {
 		this.waypoints = waypoints;
 	}
 
-	@ManyToOne(optional = false)
-	public User getUser() {
-		return user;
+	public int getUserId() {
+		return userId;
 	}
 
-	public void setUser(User user) {
-		this.user = user;
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
+
+	public static RouteDTO fromRoute(Route route) {
+		RouteDTO result = new RouteDTO();
+
+		result.setId(route.getId());
+		result.setStartLat(route.getStartLat());
+		result.setStartLon(route.getStartLon());
+		result.setEndLat(route.getEndLat());
+		result.setEndLon(route.getEndLon());
+		result.setTitle(route.getTitle());
+		result.setUserId(route.getUser().getId());
+		result.setFavoured(route.getFavoured());
+		result.setWaypoints(route.getWaypoints().stream().map(RouteWaypointDTO::fromRouteWaypoint).collect(Collectors.toList()));
+
+		return result;
 	}
 }

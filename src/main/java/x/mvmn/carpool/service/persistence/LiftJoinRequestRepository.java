@@ -4,10 +4,14 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import x.mvmn.carpool.model.LiftJoinRequest;
 
@@ -75,4 +79,9 @@ public interface LiftJoinRequestRepository extends JpaRepository<LiftJoinRequest
 			}
 		};
 	}
+
+	@Modifying
+	@Transactional
+	@Query("DELETE FROM LiftJoinRequest ljr WHERE EXISTS (SELECT lr FROM LiftRequest lr WHERE lr.id = ljr.liftRequest.id AND lr.timeValidTo < :timeValidToCap)")
+	public int deleteByLiftRequestTimeValidToLessThan(@Param("timeValidToCap") long timeValidToCap);
 }

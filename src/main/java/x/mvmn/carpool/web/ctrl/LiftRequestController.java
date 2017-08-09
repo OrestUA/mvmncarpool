@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import x.mvmn.carpool.model.LiftRequest;
 import x.mvmn.carpool.model.User;
+import x.mvmn.carpool.service.EventService;
+import x.mvmn.carpool.service.EventService.StateChangeType;
 import x.mvmn.carpool.service.persistence.LiftRequestRepository;
 import x.mvmn.carpool.web.dto.GenericResultDTO;
 import x.mvmn.carpool.web.dto.LiftRequestDTO;
@@ -32,6 +34,9 @@ public class LiftRequestController {
 
 	@Autowired
 	private LiftRequestRepository liftRequestRepository;
+
+	@Autowired
+	private EventService eventService;
 
 	@RequestMapping(path = "/api/liftrequest", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasRole('ROLE_USER')")
@@ -79,6 +84,7 @@ public class LiftRequestController {
 				liftRequestRepository.delete(liftRequest);
 				result.success = true;
 				result.message = "ok";
+				eventService.notifyLiftRequestStatusChange(liftRequest, StateChangeType.DELETED);
 			}
 		}
 		return result;
@@ -90,6 +96,8 @@ public class LiftRequestController {
 		User currentUser = UserUtil.getCurrentUser(auth);
 		GenericResultDTO result = new GenericResultDTO();
 		result.success = false;
+
+		boolean newLiftRequest = false;
 
 		LiftRequest liftRequest = null;
 		if (liftRequestDTO.getId() > 0) {
@@ -109,6 +117,7 @@ public class LiftRequestController {
 			// insert
 			liftRequest = new LiftRequest();
 			liftRequest.setUser(currentUser);
+			newLiftRequest = true;
 		}
 
 		if (liftRequest != null) {
@@ -123,6 +132,8 @@ public class LiftRequestController {
 			result.success = true;
 			result.message = "ok";
 			result.data = LiftRequestDTO.fromLiftRequest(liftRequest);
+
+			eventService.notifyLiftRequestStatusChange(liftRequest, newLiftRequest ? StateChangeType.CREATED : StateChangeType.UPDATED);
 		}
 
 		return result;

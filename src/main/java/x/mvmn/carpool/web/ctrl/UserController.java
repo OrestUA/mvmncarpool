@@ -11,6 +11,8 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hibernate.validator.constraints.Email;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -25,9 +27,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.savoirtech.logging.slf4j.json.LoggerFactory;
-import com.savoirtech.logging.slf4j.json.logger.Logger;
 
 import x.mvmn.carpool.model.User;
 import x.mvmn.carpool.service.UserConfirmationService;
@@ -149,7 +148,7 @@ public class UserController {
 						userRepository.delete(user);
 					}
 				} catch (Exception cleanupUserException) {
-					LOGGER.warn().message("Failed to delete user after reg confirm sending failed").exception("exception", cleanupUserException).log();
+					LOGGER.warn("Failed to cleanup-delete user after reg confirm sending failed", cleanupUserException);
 					cleanupUserException.printStackTrace();
 				}
 				throw new RuntimeException(e);

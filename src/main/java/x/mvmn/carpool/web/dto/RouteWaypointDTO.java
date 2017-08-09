@@ -1,39 +1,21 @@
-package x.mvmn.carpool.model;
+package x.mvmn.carpool.web.dto;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-
+import x.mvmn.carpool.model.RouteWaypoint;
 import x.mvmn.carpool.model.DrivePath.PointCoordinates;
 
-@Entity
-public class RouteWaypoint implements PointCoordinates {
+public class RouteWaypointDTO implements PointCoordinates {
 
 	protected int id;
-	protected Route route;
 	protected double lat;
 	protected double lon;
 	protected boolean userSpecified;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
 	public int getId() {
 		return id;
 	}
 
 	public void setId(int id) {
 		this.id = id;
-	}
-
-	@ManyToOne(optional = false)
-	public Route getRoute() {
-		return route;
-	}
-
-	public void setRoute(Route route) {
-		this.route = route;
 	}
 
 	public double getLat() {
@@ -58,5 +40,16 @@ public class RouteWaypoint implements PointCoordinates {
 
 	public void setUserSpecified(boolean userSpecified) {
 		this.userSpecified = userSpecified;
+	}
+
+	public static RouteWaypointDTO fromRouteWaypoint(RouteWaypoint rwp) {
+		RouteWaypointDTO result = new RouteWaypointDTO();
+
+		result.setId(rwp.getId());
+		result.setLat(rwp.getLat());
+		result.setLon(rwp.getLon());
+		result.setUserSpecified(rwp.isUserSpecified());
+
+		return result;
 	}
 }
