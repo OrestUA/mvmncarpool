@@ -19,10 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import x.mvmn.carpool.model.LiftOffer;
 import x.mvmn.carpool.model.LiftRequest;
 import x.mvmn.carpool.model.User;
 import x.mvmn.carpool.service.EventService;
 import x.mvmn.carpool.service.EventService.StateChangeType;
+import x.mvmn.carpool.service.ProximitySearchService;
+import x.mvmn.carpool.service.persistence.LiftOfferRepository;
 import x.mvmn.carpool.service.persistence.LiftRequestRepository;
 import x.mvmn.carpool.web.dto.GenericResultDTO;
 import x.mvmn.carpool.web.dto.LiftRequestDTO;
@@ -36,7 +39,13 @@ public class LiftRequestController {
 	private LiftRequestRepository liftRequestRepository;
 
 	@Autowired
+	private LiftOfferRepository liftOfferRepository;
+
+	@Autowired
 	private EventService eventService;
+
+	@Autowired
+	private ProximitySearchService proximitySearchService;
 
 	@RequestMapping(path = "/api/liftrequest", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasRole('ROLE_USER')")
@@ -137,5 +146,22 @@ public class LiftRequestController {
 		}
 
 		return result;
+	}
+
+	@RequestMapping(path = "/api/liftrequest/findNearLiftOfferRoute", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasRole('ROLE_USER')")
+	public @ResponseBody List<LiftRequestDTO> findNearLiftOfferRoute(@RequestParam("liftOfferId") int liftOfferId,
+			@RequestParam("distanceKm") double distanceKm, HttpServletResponse response) {
+		LiftOffer liftOffer = liftOfferRepository.findOne(liftOfferId);
+		if (liftOffer == null) {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			return null;
+		} else {
+			if (distanceKm > 10.0) {
+				distanceKm = 10.0;
+			}
+			return proximitySearchService.findLiftRequestsNearRoute(liftOffer.getRoute(), distanceKm).stream().map(LiftRequestDTO::fromLiftRequest)
+					.collect(Collectors.toList());
+		}
 	}
 }

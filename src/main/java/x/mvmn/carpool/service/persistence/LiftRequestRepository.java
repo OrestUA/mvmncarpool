@@ -1,5 +1,7 @@
 package x.mvmn.carpool.service.persistence;
 
+import java.util.List;
+
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -10,6 +12,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import x.mvmn.carpool.model.LiftRequest;
 
@@ -35,4 +39,8 @@ public interface LiftRequestRepository extends JpaRepository<LiftRequest, Intege
 	@Modifying
 	@Transactional
 	public int deleteByTimeValidToLessThan(long timeValidToCap);
+
+	@Query("SELECT lr FROM LiftRequest lr WHERE lr.lat > :latFrom AND lr.lat < :latTo AND lr.lon > :lonFrom AND lr.lon < :lonTo AND lr.timeValidTo > validAfter")
+	public List<LiftRequest> findByLatLngInRangeAndValidAfter(@Param("latFrom") double latFrom, @Param("latTo") double latTo, @Param("lonFrom") double lonFrom,
+			@Param("lonTo") double lonTo, @Param("lonTo") long validAfter);
 }

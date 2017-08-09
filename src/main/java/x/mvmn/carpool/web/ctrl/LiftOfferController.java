@@ -21,13 +21,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import x.mvmn.carpool.model.LiftJoinRequest;
 import x.mvmn.carpool.model.LiftOffer;
+import x.mvmn.carpool.model.LiftRequest;
 import x.mvmn.carpool.model.Route;
 import x.mvmn.carpool.model.RouteWaypoint;
 import x.mvmn.carpool.model.User;
 import x.mvmn.carpool.model.Vehicle;
 import x.mvmn.carpool.service.EventService;
+import x.mvmn.carpool.service.ProximitySearchService;
 import x.mvmn.carpool.service.EventService.StateChangeType;
 import x.mvmn.carpool.service.persistence.LiftOfferRepository;
+import x.mvmn.carpool.service.persistence.LiftRequestRepository;
 import x.mvmn.carpool.service.persistence.RouteRepository;
 import x.mvmn.carpool.service.persistence.RouteWaypointRepository;
 import x.mvmn.carpool.service.persistence.VehicleRepository;
@@ -44,6 +47,9 @@ public class LiftOfferController {
 	LiftOfferRepository liftOfferRepository;
 
 	@Autowired
+	LiftRequestRepository liftRequestRepository;
+
+	@Autowired
 	RouteRepository routeRepository;
 
 	@Autowired
@@ -54,6 +60,9 @@ public class LiftOfferController {
 
 	@Autowired
 	EventService eventService;
+
+	@Autowired
+	private ProximitySearchService proximitySearchService;
 
 	@RequestMapping(path = "/api/liftOffer/own", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasRole('ROLE_USER')")
@@ -239,5 +248,22 @@ public class LiftOfferController {
 		}
 
 		return result;
+	}
+
+	@RequestMapping(path = "/api/liftOffer/findNearPoint", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasRole('ROLE_USER')")
+	public List<LiftOfferDTO> findNearLiftRequest(@RequestParam("liftRequestId") int liftRequestId, @RequestParam("distanceKm") double distanceKm,
+			HttpServletResponse response) {
+		LiftRequest liftRequest = liftRequestRepository.findOne(liftRequestId);
+		if (liftRequest == null) {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			return null;
+		} else {
+			if (distanceKm > 10.0) {
+				distanceKm = 10.0;
+			}
+			return proximitySearchService.findLiftOffersForCoordinates(liftRequest.getLat(), liftRequest.getLon(), distanceKm).stream()
+					.map(LiftOfferDTO::fromLiftOffer).collect(Collectors.toList());
+		}
 	}
 }

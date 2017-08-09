@@ -83,7 +83,7 @@ ____
 R\a|
   \|
   
-Find angle "angle@r" that corresponds to distance "dist" at latitude "lat".
+Find angle "angle@r" that corresponds to distance "dist" (km) at latitude "lat".
   
 a[deg] = 90 - abs(lat[deg])
 sin(a) = r / R

@@ -82,6 +82,6 @@ public interface LiftJoinRequestRepository extends JpaRepository<LiftJoinRequest
 
 	@Modifying
 	@Transactional
-	@Query("DELETE FROM LiftJoinRequest ljr WHERE EXISTS (SELECT lr FROM LiftRequest lr WHERE lr.id = ljr.liftRequest.id AND lr.timeValidTo < :timeValidToCap)")
-	public int deleteByLiftRequestTimeValidToLessThan(@Param("timeValidToCap") long timeValidToCap);
+	@Query("DELETE FROM LiftJoinRequest ljr WHERE EXISTS (SELECT lr FROM LiftRequest lr WHERE lr.id = ljr.liftRequest.id AND lr.timeValidTo < :timeValidToCap) OR EXISTS (SELECT lo FROM LiftOffer lo WHERE lo.id = ljr.offer.id AND lo.timeValidTo < :timeValidToCap)")
+	public int deleteByLiftRequestOrLiftOfferTimeValidToLessThan(@Param("timeValidToCap") long timeValidToCap);
 }
