@@ -91,4 +91,4 @@ r = sin(a) * R
 
 2*pi*r = circle@r
 angle@r = dist/(2*pi*sin(a) * 6371) * 360
-
+angle@r = dist/(2*pi*sin(90 - abs(lat[deg])) * 6371) * 360

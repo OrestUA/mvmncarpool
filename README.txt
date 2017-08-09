@@ -1,0 +1,2 @@
+Known issues:
+- point distance search algorithm will not work properly in places where latitude or longitude switch from -179,[9] to +179,[9] - which is Arctica, Antarctica, some seas/oceans and a part of Tchukotka. If you live in some of those places and somehow managed to organize a car pool there :-) - please be advised.
