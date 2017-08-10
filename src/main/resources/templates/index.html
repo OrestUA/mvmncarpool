@@ -4,6 +4,34 @@
 	<object th:include="fragments/head :: sharedHeadContent" th:remove="tag"></object>
 	<script th:src="${global_baseUrl} + '/static/js/maps.js'"></script>		
 	<script>
+		window.carpoolApp.geocoderCache = {};
+		
+		function geocode(location, callback, skipOnError) {
+			var cacheKey = String(location.lat).replace(".", "_") + "__" + String(location.lat).replace(".", "_");
+			if(window.carpoolApp.geocoderCache[cacheKey]) {
+				setTimeout(function() {
+					callback(window.carpoolApp.geocoderCache[cacheKey]);
+				}, 0);
+			} else {
+				window.carpoolApp.geocoder.geocode({location:location}, function(results, status) {
+					if(status === 'OK' && results && results.length > 0) {
+						callback(results[0].formatted_address);
+						if(Object.keys(window.carpoolApp.geocoderCache).length > 1024) {
+							// Garbage collection :-)
+							window.carpoolApp.geocoderCache = {};
+						}
+						window.carpoolApp.geocoderCache[cacheKey] = results[0].formatted_address;
+					} else {
+						if(!skipOnError) {
+							callback(status);
+						} else {
+							console.log("Geocode error: " + status);
+						}
+					}
+				});
+			}
+		}
+	
 		PubSub.subscribe("global.carpoolApp.ready", function() {
 			// init google maps map, add click handler to pubsub event publishing
 			var height = screen.height * 0.7;
@@ -87,10 +115,8 @@
 					}
 				});
 			} else {
-				window.carpoolApp.geocoder.geocode({location:event.latLng}, function(results, status) {
-					if(status === 'OK' && results && results.length > 0) {
-						$("#requestLiftForm_address").val(results[0].formatted_address);
-					}
+				geocode(event.latLng, function(address) {
+					$("#requestLiftForm_address").val(address);
 				});
 			}
 		}
@@ -295,10 +321,8 @@
 					}
 				});
 			} else {
-				window.carpoolApp.geocoder.geocode({location:{lat:lat, lng:lng}}, function(results, status) {
-					if(status === 'OK' && results && results.length > 0) {
-						$("#offerLift" + toOrFrom + "_address").val(results[0].formatted_address);
-					}
+				geocode({lat:lat, lng:lng}, function(address) {
+					$("#offerLift" + toOrFrom + "_address").val(address);
 				});
 			}
 		}
@@ -328,23 +352,39 @@
 					}
 				});
 				
-				if(window.carpoolApp[startPoint? 'routeEndMarker' : 'routeStartMarker']) {
-					$("#btnCreateLiftOffer").removeAttr("disabled");
-					var waypoints = [];
-					if(window.carpoolApp.directionsDisplay && window.carpoolApp.directionsDisplay.getDirections()) {
-						waypoints = window.carpoolApp.directionsDisplay.getDirections().request.waypoints;
-					}
-					window.carpoolApp.directionsService.route({
-						origin: window.carpoolApp.routeStartMarker.getPosition(), 
-						destination: window.carpoolApp.routeEndMarker.getPosition(), 
-						travelMode: 'DRIVING', 
-						optimizeWaypoints: true,
-						waypoints: waypoints
-					}, function(directionsResult, status) {
-						window.carpoolApp.directionsDisplay.setDirections(directionsResult);
-					});
-				}
+				replotMainRoute();
 			}
+		}
+		
+		function replotMainRoute() {
+			if(window.carpoolApp.routeEndMarker && window.carpoolApp.routeStartMarker) {
+				$("#btnCreateLiftOffer").removeAttr("disabled");
+				var waypoints = [];
+				if(window.carpoolApp.directionsDisplay && window.carpoolApp.directionsDisplay.getDirections()) {
+					var currentWaypoints = window.carpoolApp.directionsDisplay.getDirections().request.waypoints;
+					if(currentWaypoints) {
+						for(var idx in currentWaypoints) {
+							var wpLat = currentWaypoints[idx].location.location? currentWaypoints[idx].location.location.lat() : currentWaypoints[idx].location.lat();
+							var wpLng = currentWaypoints[idx].location.location? currentWaypoints[idx].location.location.lng() : currentWaypoints[idx].location.lng();
+							waypoints.push({location: new google.maps.LatLng(wpLat, wpLng), stopover: false})
+						}
+					}
+				}
+
+				window.carpoolApp.directionsService.route({
+					origin: window.carpoolApp.routeStartMarker.getPosition(), 
+					destination: window.carpoolApp.routeEndMarker.getPosition(), 
+					travelMode: 'DRIVING', 
+					optimizeWaypoints: true,
+					waypoints: waypoints
+				}, function(directionsResult, status) {
+					if(status === 'OK') {
+						window.carpoolApp.directionsDisplay.setDirections(directionsResult);
+					} else {
+						console.log("Error routing: " + status);
+					}
+				});
+			}			
 		}
 		
 		PubSub.subscribe("global.mainRoute.changed", function() {
@@ -369,9 +409,34 @@
 			liftOfferUpdateForm("To", endPosition.lat, endPosition.lng, null);
 			
 			var waypoints = window.carpoolApp.directionsDisplay.getDirections().request.waypoints;
-			
-			// TODO: show user-specified waypoints on form
+			if(waypoints) {
+				var waypointsData = [];
+				for(var idx in waypoints) {
+					var wpLat = waypoints[idx].location.location? waypoints[idx].location.location.lat() : waypoints[idx].location.lat();
+					var wpLng = waypoints[idx].location.location? waypoints[idx].location.location.lng() : waypoints[idx].location.lng();					
+					waypointsData.push({lat: wpLat, lng: wpLng, index: idx});
+				}
+				
+				$("#liftOfferInterimWaypointsContainer").html('');
+				$("#liftOfferInterimWaypointsContainer").append($.templates("#liftOfferInterimWaypointsTemplate").render({waypoints: waypointsData}));
+				
+				for(var wpdIndex in waypointsData) {
+					(function(wpdIndex) {
+						geocode({lat: waypointsData[wpdIndex].lat, lng: waypointsData[wpdIndex].lng}, function(address) {
+							$("#liftOfferInterimWaypointAddress_" + wpdIndex).val(address);
+						});
+					})(wpdIndex);
+				}
+			}
 		});
+		
+		function deleteWaypoint(waypointIndex) {
+			if(window.carpoolApp.directionsDisplay.getDirections() && window.carpoolApp.directionsDisplay.getDirections().request 
+					&& window.carpoolApp.directionsDisplay.getDirections().request.waypoints && window.carpoolApp.directionsDisplay.getDirections().request.waypoints.length > waypointIndex) {
+				window.carpoolApp.directionsDisplay.getDirections().request.waypoints.splice(waypointIndex, 1);
+				replotMainRoute();
+			}
+		}
 	</script>
 	<script th:src="'https://maps.googleapis.com/maps/api/js?libraries=places&callback=onGoogleMapsLoad&language=' + ${#locale.getLanguage()}"></script>
 </head>
@@ -491,7 +556,22 @@
 							<input readonly="readonly" id="offerLiftTo_lng" style="width: 46%" type="text" class="u-pull-right" />
 							<input readonly="readonly" id="offerLiftTo_address" class="u-full-width" type="text" />
 						</div>
-						<div id="liftOfferRouteInterimWaypointsContainer">
+						<script type="text/x-jsrender" id="liftOfferInterimWaypointsTemplate">
+							{{if waypoints}}
+							<h5>[[ #{label.interim_waypoints} ]]</h5>
+							{{/if}}
+							{{for waypoints}}
+							<div class="u-full-width">
+								<input readonly="readonly" value="{{:lat}}" style="width: 46%" type="text" />
+								<input readonly="readonly" value="{{:lng}}" style="width: 46%" type="text" class="u-pull-right" />
+								<div class="u-full-width">
+									<button class="narrow u-pull-left" onclick="deleteWaypoint({{:index}})">X</button>
+									<input class="u-pull-right" readonly="readonly" id="liftOfferInterimWaypointAddress_{{:index}}" type="text" style="width: 80%" />
+								</div>
+							</div>
+							{{/for}}
+						</script>
+						<div id="liftOfferInterimWaypointsContainer">
 						</div>
 						<button class="u-full-width" id="btnCreateLiftOffer" onclick="" disabled="disabled">[[ #{label.offer_lift} ]]</button>
 					</div>
