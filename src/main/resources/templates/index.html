@@ -557,19 +557,25 @@
 							<input readonly="readonly" id="offerLiftTo_address" class="u-full-width" type="text" />
 						</div>
 						<script type="text/x-jsrender" id="liftOfferInterimWaypointsTemplate">
-							{{if waypoints}}
-							<h5>[[ #{label.interim_waypoints} ]]</h5>
+							{{if waypoints.length > 0}}
+								<h6>
+									[[ #{label.interim_waypoints} ]]
+									<i class="fa fa-caret-down" aria-hidden="true" id="liftOfferInterimWaypointsListContainer_hider" onclick="toggleCollapse('liftOfferInterimWaypointsListContainer')"></i>
+									<i class="fa fa-caret-left" aria-hidden="true" id="liftOfferInterimWaypointsListContainer_revealer" onclick="toggleCollapse('liftOfferInterimWaypointsListContainer')" style="display: none"></i>
+								</h6>				
 							{{/if}}
+							<div id="liftOfferInterimWaypointsListContainer">
 							{{for waypoints}}
-							<div class="u-full-width">
-								<input readonly="readonly" value="{{:lat}}" style="width: 46%" type="text" />
-								<input readonly="readonly" value="{{:lng}}" style="width: 46%" type="text" class="u-pull-right" />
 								<div class="u-full-width">
-									<button class="narrow u-pull-left" onclick="deleteWaypoint({{:index}})">X</button>
-									<input class="u-pull-right" readonly="readonly" id="liftOfferInterimWaypointAddress_{{:index}}" type="text" style="width: 80%" />
+									<input readonly="readonly" value="{{:lat}}" style="width: 46%" type="text" />
+									<input readonly="readonly" value="{{:lng}}" style="width: 46%" type="text" class="u-pull-right" />
+									<div class="u-full-width">
+										<button class="narrow u-pull-left" onclick="deleteWaypoint({{:index}})">X</button>
+										<input class="u-pull-right" readonly="readonly" id="liftOfferInterimWaypointAddress_{{:index}}" type="text" style="width: 80%" />
+									</div>
 								</div>
-							</div>
 							{{/for}}
+							</div>
 						</script>
 						<div id="liftOfferInterimWaypointsContainer">
 						</div>
