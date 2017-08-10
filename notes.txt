@@ -48,7 +48,7 @@ directionsService.route({
 	travelMode: 'DRIVING', 
 	optimizeWaypoints: true 
 }, function(directionsResult, status) { 
-	directionsDisplay.setDirections(directionsResult); 
+	directionsDisplay.setDirections(directionsResult);
 	r = directionsResult; 
 });
 

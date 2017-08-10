@@ -80,3 +80,7 @@ hr {
 .halfWidth {
 	width: 50%;	
 }
+
+#mapContainer {
+	margin-bottom: 3rem;
+}
