@@ -408,6 +408,7 @@
 			liftOfferUpdateForm("From", startPosition.lat, startPosition.lng, null);
 			liftOfferUpdateForm("To", endPosition.lat, endPosition.lng, null);
 			
+			$("#liftOfferInterimWaypointsContainer").html("");
 			var waypoints = window.carpoolApp.directionsDisplay.getDirections().request.waypoints;
 			if(waypoints) {
 				var waypointsData = [];
@@ -417,7 +418,6 @@
 					waypointsData.push({lat: wpLat, lng: wpLng, index: idx});
 				}
 				
-				$("#liftOfferInterimWaypointsContainer").html('');
 				$("#liftOfferInterimWaypointsContainer").append($.templates("#liftOfferInterimWaypointsTemplate").render({waypoints: waypointsData}));
 				
 				for(var wpdIndex in waypointsData) {
@@ -436,6 +436,80 @@
 				window.carpoolApp.directionsDisplay.getDirections().request.waypoints.splice(waypointIndex, 1);
 				replotMainRoute();
 			}
+		}
+		
+		function doOfferLift() {
+			var now = new Date();
+			var startH = now.getHours();
+			var startM = now.getMinutes();
+			var endH = (startH + 1 ) % 24;
+			var endM = startM;
+			var hourOptions = [];
+			for(var i=0;i<24;i++) { hourOptions.push({value: i, text: (i<10? '0' + i : '' + i), startSelected: i == startH, endSelected: i == endH }); }
+			var minuteOptions = [];
+			for(var i=0;i<60;i++) { minuteOptions.push({value: i, text: (i<10? '0' + i : '' + i), startSelected: i == startM, endSelected: i == endM }); }
+			
+			var interimWaypoints = [];
+			$(".interimWaypointData.dataAddress").each(function (index, el) {
+				interimWaypoints[index] = { address: el.value };
+			});
+			$(".interimWaypointData.dataLat").each(function (index, el) {
+				interimWaypoints[index].lat = el.value;		
+			});
+			$(".interimWaypointData.dataLng").each(function (index, el) {
+				interimWaypoints[index].lng = el.value		
+			});
+			
+			var data = {
+				start: {
+					lat: $("#offerLiftFrom_lat").val(),
+					lng: $("#offerLiftFrom_lng").val(),
+					address: $("#offerLiftFrom_address").val()
+				},
+				end: {
+					lat: $("#offerLiftTo_lat").val(),
+					lng: $("#offerLiftTo_lng").val(),
+					address: $("#offerLiftTo_address").val()
+				},
+				interimWaypoints: interimWaypoints,
+				hourOptions: hourOptions,
+				minuteOptions: minuteOptions
+			}
+			
+			$.get(window.carpoolApp.siteBaseUrl + "/api/vehicles", {}, function(vehicles) {
+				data.vehicles = vehicles;
+				showConfirmation($.templates("#liftOfferFormTemplate").render(data), 'label.cancel', 'label.create', function(event) {
+					var selectedStartH = parseInt($("#liftOfferStartTimeH").val());
+					var selectedStartM = parseInt($("#liftOffertartTimeM").val());
+					var selectedEndH = parseInt($("#liftOfferEndTimeH").val());
+					var selectedEndM = parseInt($("#liftOfferEndTimeM").val());
+
+					if(selectedStartH > selectedEndH || selectedStartH == selectedEndH && selectedStartM > selectedEndM) {
+						showPopup(window.carpoolApp.l10n['error.start_time_after_end_time']);
+						event.stopPropagation();
+					} else {		
+						var startDate = new Date();
+						startDate.setHours(selectedStartH);
+						startDate.setMinutes(selectedStartM);
+						var endDate = new Date();
+						endDate.setHours(selectedEndH);
+						endDate.setMinutes(selectedEndM);
+						var liftOfferDto = {
+								timeValidFrom : date2unixts(startDate),
+								timeValidTo :  date2unixts(endDate),
+								vehicleId : $("#liftOfferVehicle").val(),
+								vacantSeats: #("#liftOfferVacantSeats").val(),
+								route : {}
+							};
+						
+						makeApiCall("/api/liftoffer", 'POST', liftOfferDto, function(result) {
+							
+						});
+					}
+				});
+			}).fail(function(xhr) {
+				$("#profilePageCarListLoadingIndicator").html(exclamationSign + " " + (xhr.responseJSON ? xhr.responseJSON.message : (xhr.statusText + " " + xhr.status)));
+			});			
 		}
 	</script>
 	<script th:src="'https://maps.googleapis.com/maps/api/js?libraries=places&callback=onGoogleMapsLoad&language=' + ${#locale.getLanguage()}"></script>
@@ -459,29 +533,29 @@
 						<i class="fa fa-caret-down" aria-hidden="true" id="requestLiftForm_hider" onclick="toggleCollapse('requestLiftForm')"></i>
 						<i class="fa fa-caret-left" aria-hidden="true" style="display: none" id="requestLiftForm_revealer" onclick="toggleCollapse('requestLiftForm')"></i>				
 					</h5>
-					<script type="text/x-jsrender" id="liftRequestFormTemplate">
+					<script id="liftRequestFormTemplate" type="text/x-jsrender">
 						<div class="row"><h5>[[ #{label.lift_request} ]]</h5></div>
 						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:lat}}&nbsp;:&nbsp;{{:lng}}</div></div>
 						<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:address}}</div></div>
-						<div class="row"><div class="twelve columns"><b>[[ #{label.request_time} ]]</b></div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.validity_time} ]]</b></div></div>
 						<div class="row"><div class="six columns">[[ #{label.from_hm} ]]</div><div class="six columns">[[ #{label.to_hm} ]]</div></div>
 						<div class="row">
-						<div class="three columns"><select class="u-full-width" id="liftRequestStartTimeH" onkeyup="fixNumericInput(this, 2)">
+						<div class="three columns"><select class="u-full-width" id="liftRequestStartTimeH">
 						{{for hourOptions}}
 							<option value="{{:value}}" {{if startSelected}}selected="selected"{{/if}}>{{:text}}</option>
 						{{/for}}
 						</select></div>
-						<div class="three columns"><select class="u-full-width" id="liftRequestStartTimeM" onkeyup="fixNumericInput(this, 2)">
+						<div class="three columns"><select class="u-full-width" id="liftRequestStartTimeM">
 						{{for minuteOptions}}
 							<option value="{{:value}}" {{if startSelected}}selected="selected"{{/if}}>{{:text}}</option>
 						{{/for}}
 						</select></div>
-						<div class="three columns"><select class="u-full-width" id="liftRequestEndTimeH" onkeyup="fixNumericInput(this, 2)">
+						<div class="three columns"><select class="u-full-width" id="liftRequestEndTimeH">
 						{{for hourOptions}}
 							<option value="{{:value}}" {{if endSelected}}selected="selected"{{/if}}>{{:text}}</option>
 						{{/for}}
 						</select></div>
-						<div class="three columns"><select class="u-full-width" id="liftRequestEndTimeM" onkeyup="fixNumericInput(this, 2)">
+						<div class="three columns"><select class="u-full-width" id="liftRequestEndTimeM">
 						{{for minuteOptions}}
 							<option value="{{:value}}" {{if endSelected}}selected="selected"{{/if}}>{{:text}}</option>
 						{{/for}}
@@ -489,6 +563,64 @@
 						</div>
 						<div class="row"><div class="twelve columns"><b>[[ #{label.notes} ]]</b></div></div>
 						<div class="row"><div class="twelve columns"><input class="u-full-width" type="text" id="liftRequestNotes" /></div></div>
+					</script>
+					<script id="liftOfferFormTemplate" type="text/x-jsrender">
+						<div class="row"><div class="twelve columns"><h5>[[ #{label.lift_offer} ]]</h5></div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.lift_offer.start} ]]</b></div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:start.lat}}&nbsp;:&nbsp;{{:start.lng}}</div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:start.address}}</div></div>
+						<div class="row">&nbsp;</div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.lift_offer.end} ]]</b></div></div>						
+						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:end.lat}}&nbsp;:&nbsp;{{:end.lng}}</div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:end.address}}</div></div>
+						{{if interimWaypoints && interimWaypoints.length > 0}}
+							<div class="row">&nbsp;</div>
+							<div class="row"><div class="twelve columns"><b>[[ #{label.interim_waypoints} ]]</b></div></div>
+							{{for interimWaypoints}}
+								<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:lat}}&nbsp;:&nbsp;{{:lng}}</div></div>
+								<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:address}}</div></div>
+							{{/for}}
+						{{/if}}
+						<div class="row">&nbsp;</div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.validity_time} ]]</b></div></div>
+						<div class="row"><div class="six columns">[[ #{label.from_hm} ]]</div><div class="six columns">[[ #{label.to_hm} ]]</div></div>
+						<div class="row">
+						<div class="three columns"><select class="u-full-width" id="liftOfferStartTimeH">
+						{{for hourOptions}}
+							<option value="{{:value}}" {{if startSelected}}selected="selected"{{/if}}>{{:text}}</option>
+						{{/for}}
+						</select></div>
+						<div class="three columns"><select class="u-full-width" id="liftOfferStartTimeM">
+						{{for minuteOptions}}
+							<option value="{{:value}}" {{if startSelected}}selected="selected"{{/if}}>{{:text}}</option>
+						{{/for}}
+						</select></div>
+						<div class="three columns"><select class="u-full-width" id="liftOfferEndTimeH">
+						{{for hourOptions}}
+							<option value="{{:value}}" {{if endSelected}}selected="selected"{{/if}}>{{:text}}</option>
+						{{/for}}
+						</select></div>
+						<div class="three columns"><select class="u-full-width" id="liftOfferEndTimeM">
+						{{for minuteOptions}}
+							<option value="{{:value}}" {{if endSelected}}selected="selected"{{/if}}>{{:text}}</option>
+						{{/for}}
+						</select></div>
+						</div>
+						<div class="row">&nbsp;</div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.choose_vehicle} ]]</b></div></div>
+						<div class="row">
+							<div class="twelve columns">
+								<select class="u-full-width" id="liftOfferVehicle" onchange="$('#liftOfferVacantSeats').val($('#liftOfferVehicle option:selected').attr('data_seats'))">
+									{{for vehicles}} <option value="{{:id}}" data_seats="{{:passengerSeats}}">{{:plateNumber}} {{:name}}</option> {{/for}}
+								</select>
+							</div>
+						</div>
+						<div class="row">
+							<div class="twelve columns">
+								<label for="liftOfferVacantSeats">[[ #{label.vehicle.vacant_seats} ]]</label>
+								<input class="u-full-width" type="text" id="liftOfferVacantSeats" value="4" onkeyup="fixNumericInput(this)"  />
+							</div>
+						</div>
 					</script>
 					<div id="requestLiftForm" style="display: block" class="u-full-width">
 						<label class="u-full-width" th:text="#{label.coordinates}"></label>
@@ -538,7 +670,7 @@
 					<div id="liftOfferRouteFormContainer">				
 						<div class="u-full-width">
 							<button onclick="liftOfferSetRoutePoint(true)"><i class="fa fa-map-marker" aria-hidden="true" style="color: green"></i></button>
-							<label th:text="#{label.liftOffer.start}"></label>
+							<label th:text="#{label.lift_offer.start}"></label>
 						</div>
 						<div class="u-full-width">
 							<input readonly="readonly" id="offerLiftFrom_placeId" style="display: none" type="text" />
@@ -548,7 +680,7 @@
 						</div>
 						<div class="u-full-width">
 							<button onclick="liftOfferSetRoutePoint(false)"><i class="fa fa-map-marker" aria-hidden="true" style="color: red"></i></button>
-							<label th:text="#{label.liftOffer.end}"></label>
+							<label th:text="#{label.lift_offer.end}"></label>
 						</div>
 						<div class="u-full-width">
 							<input readonly="readonly" id="offerLiftTo_placeId" style="display: none" type="text" />
@@ -567,11 +699,11 @@
 							<div id="liftOfferInterimWaypointsListContainer">
 							{{for waypoints}}
 								<div class="u-full-width">
-									<input readonly="readonly" value="{{:lat}}" style="width: 46%" type="text" />
-									<input readonly="readonly" value="{{:lng}}" style="width: 46%" type="text" class="u-pull-right" />
+									<input readonly="readonly" value="{{:lat}}" id="liftOfferInterimWaypointLat_{{:index}}" style="width: 46%" type="text" class="interimWaypointData dataLat" />
+									<input readonly="readonly" value="{{:lng}}" id="liftOfferInterimWaypointLng_{{:index}}" style="width: 46%" type="text" class="interimWaypointData dataLng u-pull-right" />
 									<div class="u-full-width">
 										<button class="narrow u-pull-left" onclick="deleteWaypoint({{:index}})">X</button>
-										<input class="u-pull-right" readonly="readonly" id="liftOfferInterimWaypointAddress_{{:index}}" type="text" style="width: 80%" />
+										<input class="u-pull-right interimWaypointData dataAddress" readonly="readonly" id="liftOfferInterimWaypointAddress_{{:index}}" type="text" style="width: 80%" />
 									</div>
 								</div>
 							{{/for}}
@@ -579,7 +711,7 @@
 						</script>
 						<div id="liftOfferInterimWaypointsContainer">
 						</div>
-						<button class="u-full-width" id="btnCreateLiftOffer" onclick="" disabled="disabled">[[ #{label.offer_lift} ]]</button>
+						<button class="u-full-width" id="btnCreateLiftOffer" onclick="doOfferLift()" disabled="disabled">[[ #{label.offer_lift} ]]</button>
 					</div>
 					<h5>
 						[[ #{label.my_lift_offers} ]]

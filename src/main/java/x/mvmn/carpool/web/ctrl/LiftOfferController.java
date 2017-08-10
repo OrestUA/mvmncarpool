@@ -124,7 +124,7 @@ public class LiftOfferController {
 		return result;
 	}
 
-	@RequestMapping(path = "/api/liftOffer/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/api/liftOffer", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasRole('ROLE_USER')")
 	public GenericResultDTO upsertLiftOffer(Authentication auth, @RequestBody LiftOfferDTO liftOfferDTO,
 			@RequestParam(required = false, name = "routeId") Integer routeId, HttpServletResponse response) {
