@@ -3,7 +3,7 @@
 <body>
 	<div th:fragment="commonHeading">
 		<script type="text/x-jsrender" id="popupTempalte">
-			<div id="{{:popupId}}" class="popup">
+			<div id="{{>popupId}}" class="popup">
 				<div class="container">
 					<div class="row">
 						<div class="twelve columns">{{:content}}</div>
@@ -11,14 +11,14 @@
 					<div class="row">&nbsp;</div>
 					<div class="row">
 						<div class="twelve columns">
-							<input type="button" class="{{:popupId}}_close u-full-width" value="{{:closeButtonLabel}}" />
+							<input type="button" class="{{>popupId}}_close u-full-width" value="{{>closeButtonLabel}}" />
 						</div>
 					</div>
 				</div>
 			</div>
 		</script>
 		<script type="text/x-jsrender" id="confirmDialogTempalte">
-			<div id="{{:popupId}}" class="popup confirmation">
+			<div id="{{>popupId}}" class="popup confirmation">
 				<div class="container">
 					{{if customStructure}}
 						{{:content}}
@@ -30,10 +30,10 @@
 					<div class="row">&nbsp;</div>
 					<div class="row">
 						<div class="six columns">
-							<input type="button" class="{{:popupId}}_close u-full-width confirmButton" value="{{:yesButtonLabel}}" />
+							<input type="button" class="{{>popupId}}_close u-full-width confirmButton" value="{{>yesButtonLabel}}" />
 						</div>
 						<div class="six columns">
-							<input type="button" class="{{:popupId}}_close u-full-width" value="{{:noButtonLabel}}" />
+							<input type="button" class="{{>popupId}}_close u-full-width" value="{{>noButtonLabel}}" />
 						</div>
 					</div>
 				</div>

@@ -576,29 +576,29 @@
 					</h5>
 					<script id="liftRequestFormTemplate" type="text/x-jsrender">
 						<div class="row"><h5>[[ #{label.lift_request} ]]</h5></div>
-						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:lat}}&nbsp;:&nbsp;{{:lng}}</div></div>
-						<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:address}}</div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{>lat}}&nbsp;:&nbsp;{{>lng}}</div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{>address}}</div></div>
 						<div class="row"><div class="twelve columns"><b>[[ #{label.validity_time} ]]</b></div></div>
 						<div class="row"><div class="six columns">[[ #{label.from_hm} ]]</div><div class="six columns">[[ #{label.to_hm} ]]</div></div>
 						<div class="row">
 						<div class="three columns"><select class="u-full-width" id="liftRequestStartTimeH">
 						{{for hourOptions}}
-							<option value="{{:value}}" {{if startSelected}}selected="selected"{{/if}}>{{:text}}</option>
+							<option value="{{>value}}" {{if startSelected}}selected="selected"{{/if}}>{{>text}}</option>
 						{{/for}}
 						</select></div>
 						<div class="three columns"><select class="u-full-width" id="liftRequestStartTimeM">
 						{{for minuteOptions}}
-							<option value="{{:value}}" {{if startSelected}}selected="selected"{{/if}}>{{:text}}</option>
+							<option value="{{>value}}" {{if startSelected}}selected="selected"{{/if}}>{{>text}}</option>
 						{{/for}}
 						</select></div>
 						<div class="three columns"><select class="u-full-width" id="liftRequestEndTimeH">
 						{{for hourOptions}}
-							<option value="{{:value}}" {{if endSelected}}selected="selected"{{/if}}>{{:text}}</option>
+							<option value="{{>value}}" {{if endSelected}}selected="selected"{{/if}}>{{>text}}</option>
 						{{/for}}
 						</select></div>
 						<div class="three columns"><select class="u-full-width" id="liftRequestEndTimeM">
 						{{for minuteOptions}}
-							<option value="{{:value}}" {{if endSelected}}selected="selected"{{/if}}>{{:text}}</option>
+							<option value="{{>value}}" {{if endSelected}}selected="selected"{{/if}}>{{>text}}</option>
 						{{/for}}
 						</select></div>
 						</div>
@@ -608,18 +608,18 @@
 					<script id="liftOfferFormTemplate" type="text/x-jsrender">
 						<div class="row"><div class="twelve columns"><h5>[[ #{label.lift_offer} ]]</h5></div></div>
 						<div class="row"><div class="twelve columns"><b>[[ #{label.lift_offer.start} ]]</b></div></div>
-						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:start.lat}}&nbsp;:&nbsp;{{:start.lon}}</div></div>
-						<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:start.address}}</div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{>start.lat}}&nbsp;:&nbsp;{{>start.lon}}</div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{>start.address}}</div></div>
 						<div class="row">&nbsp;</div>
 						<div class="row"><div class="twelve columns"><b>[[ #{label.lift_offer.end} ]]</b></div></div>						
-						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:end.lat}}&nbsp;:&nbsp;{{:end.lon}}</div></div>
-						<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:end.address}}</div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{>end.lat}}&nbsp;:&nbsp;{{>end.lon}}</div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{>end.address}}</div></div>
 						{{if interimWaypoints && interimWaypoints.length > 0}}
 							<div class="row">&nbsp;</div>
 							<div class="row"><div class="twelve columns"><b>[[ #{label.interim_waypoints} ]]</b></div></div>
 							{{for interimWaypoints}}
-								<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:lat}}&nbsp;:&nbsp;{{:lon}}</div></div>
-								<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:address}}</div></div>
+								<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{>lat}}&nbsp;:&nbsp;{{>lon}}</div></div>
+								<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{>address}}</div></div>
 							{{/for}}
 						{{/if}}
 						<div class="row">&nbsp;</div>
@@ -628,22 +628,22 @@
 						<div class="row">
 						<div class="three columns"><select class="u-full-width" id="liftOfferStartTimeH">
 						{{for hourOptions}}
-							<option value="{{:value}}" {{if startSelected}}selected="selected"{{/if}}>{{:text}}</option>
+							<option value="{{>value}}" {{if startSelected}}selected="selected"{{/if}}>{{>text}}</option>
 						{{/for}}
 						</select></div>
 						<div class="three columns"><select class="u-full-width" id="liftOfferStartTimeM">
 						{{for minuteOptions}}
-							<option value="{{:value}}" {{if startSelected}}selected="selected"{{/if}}>{{:text}}</option>
+							<option value="{{>value}}" {{if startSelected}}selected="selected"{{/if}}>{{>text}}</option>
 						{{/for}}
 						</select></div>
 						<div class="three columns"><select class="u-full-width" id="liftOfferEndTimeH">
 						{{for hourOptions}}
-							<option value="{{:value}}" {{if endSelected}}selected="selected"{{/if}}>{{:text}}</option>
+							<option value="{{>value}}" {{if endSelected}}selected="selected"{{/if}}>{{>text}}</option>
 						{{/for}}
 						</select></div>
 						<div class="three columns"><select class="u-full-width" id="liftOfferEndTimeM">
 						{{for minuteOptions}}
-							<option value="{{:value}}" {{if endSelected}}selected="selected"{{/if}}>{{:text}}</option>
+							<option value="{{>value}}" {{if endSelected}}selected="selected"{{/if}}>{{>text}}</option>
 						{{/for}}
 						</select></div>
 						</div>
@@ -652,7 +652,7 @@
 						<div class="row">
 							<div class="twelve columns">
 								<select class="u-full-width" id="liftOfferVehicle" onchange="$('#liftOfferVacantSeats').val($('#liftOfferVehicle option:selected').attr('data_seats'))">
-									{{for vehicles}} <option value="{{:id}}" data_seats="{{:passengerSeats}}">{{:plateNumber}} {{:name}}</option> {{/for}}
+									{{for vehicles}} <option value="{{>id}}" data_seats="{{>passengerSeats}}">{{>plateNumber}} {{>name}}</option> {{/for}}
 								</select>
 							</div>
 						</div>
@@ -679,18 +679,18 @@
 						<i class="fa fa-caret-left" aria-hidden="true" style="display: none" id="myLiftRequestsContainer_revealer" onclick="toggleCollapse('myLiftRequestsContainer')"></i>				
 					</h5>
 					<script type="text/x-jsrender" id="liftRequestListRowTemplate">
-						<div class="u-full-width" id="liftRequestsList_{{:id}}">
+						<div class="u-full-width" id="liftRequestsList_{{>id}}">
 							<div class="u-full-width">
-								<div style="display: inline-block; font-weight: bold; padding: 4px; color: white; background-color: {{:color}}">#{{:indexInList}}</div>
-								<input type="checkbox" class="liftRequestListItemShowCheckbox" id="liftRequestListItem_showCheckbox{{:id}}" onclick="showHideLiftRequestOnMap(this.checked, {{:id}}, {{:lat}}, {{:lon}}, '{{:color}}', '{{:placeId}}')" />&nbsp;[[ #{label.show_on_map} ]]
-								<span style="color: {{:color}}; display: inline-block"><i class="fa fa-map-marker" aria-hidden="true"></i></span>
+								<div style="display: inline-block; font-weight: bold; padding: 4px; color: white; background-color: {{>color}}">#{{>indexInList}}</div>
+								<input type="checkbox" class="liftRequestListItemShowCheckbox" id="liftRequestListItem_showCheckbox{{>id}}" onclick="showHideLiftRequestOnMap(this.checked, {{>id}}, {{>lat}}, {{>lon}}, '{{>color}}', '{{>placeId}}')" />&nbsp;[[ #{label.show_on_map} ]]
+								<span style="color: {{>color}}; display: inline-block"><i class="fa fa-map-marker" aria-hidden="true"></i></span>
 								<div style="display: inline-block" class="u-pull-right">
-									<button id="btnDeleteLiftRequest_{{:id}}" class="narrow" onclick="deleteLiftRequest({{:id}})">X <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+									<button id="btnDeleteLiftRequest_{{>id}}" class="narrow" onclick="deleteLiftRequest({{>id}})">X <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i></button>
 								</div>
 							</div>
-							<div>{{:address}}</div>
-							<div>{{:validFrom}}&nbsp;-&nbsp;{{:validTo}}</div>
-							<div>{{:notes}}</div>
+							<div>{{>address}}</div>
+							<div>{{>validFrom}}&nbsp;-&nbsp;{{>validTo}}</div>
+							<div>{{>notes}}</div>
 							<hr class="halfWidth" />			
 						</div>					
 					</script>
@@ -740,11 +740,11 @@
 							<div id="liftOfferInterimWaypointsListContainer">
 							{{for waypoints}}
 								<div class="u-full-width">
-									<input readonly="readonly" value="{{:lat}}" id="liftOfferInterimWaypointLat_{{:index}}" style="width: 46%" type="text" class="interimWaypointData dataLat" />
-									<input readonly="readonly" value="{{:lng}}" id="liftOfferInterimWaypointLng_{{:index}}" style="width: 46%" type="text" class="interimWaypointData dataLng u-pull-right" />
+									<input readonly="readonly" value="{{>lat}}" id="liftOfferInterimWaypointLat_{{>index}}" style="width: 46%" type="text" class="interimWaypointData dataLat" />
+									<input readonly="readonly" value="{{>lng}}" id="liftOfferInterimWaypointLng_{{>index}}" style="width: 46%" type="text" class="interimWaypointData dataLng u-pull-right" />
 									<div class="u-full-width">
-										<button class="narrow u-pull-left" onclick="deleteWaypoint({{:index}})">X</button>
-										<input class="u-pull-right interimWaypointData dataAddress" readonly="readonly" id="liftOfferInterimWaypointAddress_{{:index}}" type="text" style="width: 80%" />
+										<button class="narrow u-pull-left" onclick="deleteWaypoint({{>index}})">X</button>
+										<input class="u-pull-right interimWaypointData dataAddress" readonly="readonly" id="liftOfferInterimWaypointAddress_{{>index}}" type="text" style="width: 80%" />
 									</div>
 								</div>
 							{{/for}}

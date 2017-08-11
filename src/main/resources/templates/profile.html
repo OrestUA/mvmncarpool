@@ -61,18 +61,18 @@
 			<div class="row">
 				<div class="twelve columns">
 					<script type="text/x-jsrender" id="vehicleRowTempalte">				
-						<tr id="vehicleRow_{{:id}}">
-							<td><input id="vehicle_name_{{:id}}" type="text" value="{{:name}}" size="20" /></td>
-							<td><input id="vehicle_plate_{{:id}}" type="text" value="{{:plateNumber}}" size="10" /></td>
-							<td><input id="vehicle_seats_{{:id}}" type="text" value="{{:passengerSeats}}" size="4" onkeyup="fixNumericInput(this)" /></td>
-							<td><input id="vehicle_desc_{{:id}}" type="text" value="{{:description}}" /></td>
+						<tr id="vehicleRow_{{>id}}">
+							<td><input id="vehicle_name_{{>id}}" type="text" value="{{>name}}" size="20" /></td>
+							<td><input id="vehicle_plate_{{>id}}" type="text" value="{{>plateNumber}}" size="10" /></td>
+							<td><input id="vehicle_seats_{{>id}}" type="text" value="{{>passengerSeats}}" size="4" onkeyup="fixNumericInput(this)" /></td>
+							<td><input id="vehicle_desc_{{>id}}" type="text" value="{{>description}}" /></td>
 							<td>
-								<button name="update" class="button-primary btnUpdateVehicle" id="btn_update_vehicle_{{:id}}" onclick="updateVehicle({{:id}})">
+								<button name="update" class="button-primary btnUpdateVehicle" id="btn_update_vehicle_{{>id}}" onclick="updateVehicle({{>id}})">
 									<span th:text="#{label.save}"></span> <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
 								</button>
 							</td>
 							<td>
-								<button name="update" class="button-primary btnDeleteVehicle" id="btn_delete_vehicle_{{:id}}" onclick="deleteVehicle({{:id}})">
+								<button name="update" class="button-primary btnDeleteVehicle" id="btn_delete_vehicle_{{>id}}" onclick="deleteVehicle({{>id}})">
 									<span th:text="X"></span> <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i>
 								</button>
 							</td>
