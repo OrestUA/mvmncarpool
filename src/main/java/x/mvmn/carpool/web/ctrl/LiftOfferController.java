@@ -181,6 +181,7 @@ public class LiftOfferController {
 							routeClone.setUser(currentUser);
 							routeClone.setTitle(storedRoute.getTitle());
 							routeClone.setWaypoints(new ArrayList<>());
+							routeClone.setFavoured(storedRoute.getFavoured());
 							routeClone = routeRepository.save(routeClone);
 							for (RouteWaypoint wp : storedRoute.getWaypoints()) {
 								RouteWaypoint wpClone = new RouteWaypoint();
@@ -206,6 +207,7 @@ public class LiftOfferController {
 					storedRoute.setEndLat(liftOfferDTO.getRoute().getEndLat());
 					storedRoute.setEndLon(liftOfferDTO.getRoute().getEndLon());
 					storedRoute.setTitle(liftOfferDTO.getRoute().getTitle());
+					storedRoute.setFavoured(liftOfferDTO.getRoute().getFavoured());
 					storedRoute.setUser(currentUser);
 					storedRoute.setWaypoints(new ArrayList<>());
 					storedRoute = routeRepository.save(storedRoute);
