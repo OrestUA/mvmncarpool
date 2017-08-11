@@ -11,6 +11,7 @@ public class LiftOfferDTO {
 	protected int vacantSeats;
 	protected long timeValidFrom;
 	protected long timeValidTo;
+	protected String notes;
 
 	public int getId() {
 		return id;
@@ -68,6 +69,14 @@ public class LiftOfferDTO {
 		this.timeValidTo = timeValidTo;
 	}
 
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
+	}
+
 	public static LiftOfferDTO fromLiftOffer(LiftOffer liftOffer) {
 		LiftOfferDTO result = new LiftOfferDTO();
 
@@ -78,6 +87,7 @@ public class LiftOfferDTO {
 		result.setVehicleId(liftOffer.getVehicle() != null ? liftOffer.getVehicle().getId() : 0);
 		result.setUserId(liftOffer.getUser() != null ? liftOffer.getUser().getId() : 0);
 		result.setRoute(liftOffer.getRoute() != null ? RouteDTO.fromRoute(liftOffer.getRoute()) : null);
+		result.setNotes(liftOffer.getNotes());
 
 		return result;
 	}

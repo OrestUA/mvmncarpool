@@ -530,6 +530,7 @@
 								timeValidTo :  date2unixts(endDate),
 								vehicleId : $("#liftOfferVehicle").val(),
 								vacantSeats: $("#liftOfferVacantSeats").val(),
+								notes: $("#liftOfferNotes").val(),
 								route : {
 									title: title,
 									favoured: false,
@@ -603,7 +604,7 @@
 						</select></div>
 						</div>
 						<div class="row"><div class="twelve columns"><b>[[ #{label.notes} ]]</b></div></div>
-						<div class="row"><div class="twelve columns"><input class="u-full-width" type="text" id="liftRequestNotes" /></div></div>
+						<div class="row"><div class="twelve columns"><input class="u-full-width" type="text" id="liftRequestNotes" value="" /></div></div>
 					</script>
 					<script id="liftOfferFormTemplate" type="text/x-jsrender">
 						<div class="row"><div class="twelve columns"><h5>[[ #{label.lift_offer} ]]</h5></div></div>
@@ -662,6 +663,8 @@
 								<input class="u-full-width" type="text" id="liftOfferVacantSeats" value="4" onkeyup="fixNumericInput(this)"  />
 							</div>
 						</div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.notes} ]]</b></div></div>
+						<div class="row"><div class="twelve columns"><input class="u-full-width" type="text" id="liftOfferNotes" value="" /></div></div>
 					</script>
 					<div id="requestLiftForm" style="display: block" class="u-full-width">
 						<label class="u-full-width" th:text="#{label.coordinates}"></label>

@@ -238,6 +238,7 @@ public class LiftOfferController {
 				liftOffer.setTimeValidFrom(liftOfferDTO.getTimeValidFrom());
 				liftOffer.setTimeValidTo(liftOfferDTO.getTimeValidTo());
 				liftOffer.setVacantSeats(liftOfferDTO.getVacantSeats());
+				liftOffer.setNotes(liftOfferDTO.getNotes());
 				liftOffer.setVehicle(vehicle);
 				liftOffer.setRoute(storedRoute);
 				liftOffer = liftOfferRepository.save(liftOffer);

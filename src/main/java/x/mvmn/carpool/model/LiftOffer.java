@@ -21,6 +21,7 @@ public class LiftOffer {
 	protected List<LiftJoinRequest> joinRequests;
 	protected long timeValidFrom;
 	protected long timeValidTo;
+	protected String notes;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -90,5 +91,13 @@ public class LiftOffer {
 
 	public void setTimeValidTo(long timeValidTo) {
 		this.timeValidTo = timeValidTo;
+	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
 	}
 }
