@@ -58,6 +58,15 @@
 			});
 			
 			populateMyLiftRequests();
+			
+			window.carpoolApp.autocomplete = new google.maps.places.Autocomplete(document.getElementById("placeSearchInput"));
+			window.carpoolApp.autocomplete.addListener('place_changed', function() {
+				var place = window.carpoolApp.autocomplete.getPlace();
+				if(place.geometry.location) {
+					setUserMarker(place.geometry.location.lat(), place.geometry.location.lng(), place.place_id);
+					window.carpoolApp.mainMap.setCenter(place.geometry.location);
+				}
+			});
 		});
 
 		window.carpoolApp.loadedModules = [];
@@ -73,11 +82,15 @@
 		}
 		
 		PubSub.subscribe("global.mainMap.clicked", function(msg, event) {
+			setUserMarker(event.latLng.lat(), event.latLng.lng(), event.placeId);
+		});
+		
+		function setUserMarker(lat, lng, placeId) {
 			if(window.carpoolApp.userSpecifiedMarker) {
 				window.carpoolApp.userSpecifiedMarker.setMap(null);
 			}
 			window.carpoolApp.userSpecifiedMarker = new google.maps.Marker({ 
-					position: event.latLng, 
+					position: {lat: lat, lng: lng}, 
 					map: window.carpoolApp.mainMap, 
 					draggable: false,
 					animation: google.maps.Animation.BOUNCE,
@@ -91,31 +104,27 @@
 						strokeWeight: 1
 					}
 				});
-			if(event.placeId) {
-				window.carpoolApp.userSpecifiedMarker.setPlace({ placeId: event.placeId, location: event.latLng });
+			if(placeId) {
+				window.carpoolApp.userSpecifiedMarker.setPlace({ placeId: placeId, location: {lat: lat, lng: lng} });
 			}
 			
-			updateLifrRequestCoordinatesForm(msg, event);
-			
-			if(window.carpoolApp.mapUiMode === 'offerLift') {
-				//
-			}
-		});
+			updateLifrRequestCoordinatesForm(lat, lng, placeId);
+		}
 		
-		function updateLifrRequestCoordinatesForm(msg, event) {
-			$("#requestLiftForm_lat").val(event.latLng.lat());
-			$("#requestLiftForm_lng").val(event.latLng.lng());
-			$("#requestLiftForm_placeId").val(event.placeId);
+		function updateLifrRequestCoordinatesForm(lat, lng, placeId) {
+			$("#requestLiftForm_lat").val(lat);
+			$("#requestLiftForm_lng").val(lng);
+			$("#requestLiftForm_placeId").val(placeId? placeId : '');
 			$("#requestLiftButton").removeAttr("disabled");
 			
-			if(event.placeId) {
-				window.carpoolApp.placesService.getDetails({placeId: event.placeId}, function(details, status) {
+			if(placeId) {
+				window.carpoolApp.placesService.getDetails({placeId: placeId}, function(details, status) {
 					if(status === 'OK' && details) { 
 						$("#requestLiftForm_address").val(details.name + ", " + details.formatted_address);
 					}
 				});
 			} else {
-				geocode(event.latLng, function(address) {
+				geocode({lat: lat, lng: lng}, function(address) {
 					$("#requestLiftForm_address").val(address);
 				});
 			}
@@ -430,6 +439,14 @@
 			}
 		});
 		
+		function deleteAllWaypoints() {
+			if(window.carpoolApp.directionsDisplay.getDirections() && window.carpoolApp.directionsDisplay.getDirections().request 
+					&& window.carpoolApp.directionsDisplay.getDirections().request.waypoints && window.carpoolApp.directionsDisplay.getDirections().request.waypoints.length > 0) {
+				window.carpoolApp.directionsDisplay.getDirections().request.waypoints = [];
+				replotMainRoute();
+			}
+		}
+		
 		function deleteWaypoint(waypointIndex) {
 			if(window.carpoolApp.directionsDisplay.getDirections() && window.carpoolApp.directionsDisplay.getDirections().request 
 					&& window.carpoolApp.directionsDisplay.getDirections().request.waypoints && window.carpoolApp.directionsDisplay.getDirections().request.waypoints.length > waypointIndex) {
@@ -451,24 +468,24 @@
 			
 			var interimWaypoints = [];
 			$(".interimWaypointData.dataAddress").each(function (index, el) {
-				interimWaypoints[index] = { address: el.value };
+				interimWaypoints[index] = { address: el.value, userSpecified: true };
 			});
 			$(".interimWaypointData.dataLat").each(function (index, el) {
 				interimWaypoints[index].lat = el.value;		
 			});
 			$(".interimWaypointData.dataLng").each(function (index, el) {
-				interimWaypoints[index].lng = el.value		
+				interimWaypoints[index].lon = el.value		
 			});
 			
 			var data = {
 				start: {
 					lat: $("#offerLiftFrom_lat").val(),
-					lng: $("#offerLiftFrom_lng").val(),
+					lon: $("#offerLiftFrom_lng").val(),
 					address: $("#offerLiftFrom_address").val()
 				},
 				end: {
 					lat: $("#offerLiftTo_lat").val(),
-					lng: $("#offerLiftTo_lng").val(),
+					lon: $("#offerLiftTo_lng").val(),
 					address: $("#offerLiftTo_address").val()
 				},
 				interimWaypoints: interimWaypoints,
@@ -480,9 +497,11 @@
 				data.vehicles = vehicles;
 				showConfirmation($.templates("#liftOfferFormTemplate").render(data), 'label.cancel', 'label.create', function(event) {
 					var selectedStartH = parseInt($("#liftOfferStartTimeH").val());
-					var selectedStartM = parseInt($("#liftOffertartTimeM").val());
+					var selectedStartM = parseInt($("#liftOfferStartTimeM").val());
 					var selectedEndH = parseInt($("#liftOfferEndTimeH").val());
 					var selectedEndM = parseInt($("#liftOfferEndTimeM").val());
+					
+					var title = data.start.address + " - " + data.end.address;
 
 					if(selectedStartH > selectedEndH || selectedStartH == selectedEndH && selectedStartM > selectedEndM) {
 						showPopup(window.carpoolApp.l10n['error.start_time_after_end_time']);
@@ -494,22 +513,43 @@
 						var endDate = new Date();
 						endDate.setHours(selectedEndH);
 						endDate.setMinutes(selectedEndM);
+						
+						if(carpoolApp.directionsDisplay.getDirections().routes[0].overview_path) {
+							var overviewPath = carpoolApp.directionsDisplay.getDirections().routes[0].overview_path;
+							for(var wpIdx in overviewPath) {
+								interimWaypoints.push({
+									lat: overviewPath[wpIdx].lat(),
+									lon: overviewPath[wpIdx].lng(),
+									userSpecified: false
+								});
+							}
+						}
+						
 						var liftOfferDto = {
 								timeValidFrom : date2unixts(startDate),
 								timeValidTo :  date2unixts(endDate),
 								vehicleId : $("#liftOfferVehicle").val(),
-								vacantSeats: #("#liftOfferVacantSeats").val(),
-								route : {}
+								vacantSeats: $("#liftOfferVacantSeats").val(),
+								route : {
+									title: title,
+									favoured: false,
+									startLat: data.start.lat, 
+									startLon: data.start.lon,
+									endLat: data.end.lat,
+									endLon: data.end.lon,
+									waypoints: interimWaypoints
+								}
 							};
 						
-						makeApiCall("/api/liftoffer", 'POST', liftOfferDto, function(result) {
-							
+						makeApiCall("/api/liftOffer", 'POST', liftOfferDto, function(result) {
+							showPopup(window.carpoolApp.l10n['label.liftoffer.createsuccess']);
+							deleteAllWaypoints();
 						});
 					}
 				});
 			}).fail(function(xhr) {
 				$("#profilePageCarListLoadingIndicator").html(exclamationSign + " " + (xhr.responseJSON ? xhr.responseJSON.message : (xhr.statusText + " " + xhr.status)));
-			});			
+			});
 		}
 	</script>
 	<script th:src="'https://maps.googleapis.com/maps/api/js?libraries=places&callback=onGoogleMapsLoad&language=' + ${#locale.getLanguage()}"></script>
@@ -520,6 +560,7 @@
 		<div class="row">
 			<div class="eight columns">
 				<button class="u-full-width" onclick="centerMapOnCurrentLocation()" th:text="#{label.center_on_my_location}"></button>
+				<input class="u-full-width" type="text" id="placeSearchInput" />
 				<div id="mapContainer"></div>
 			</div>
 			<div class="four columns">
@@ -567,17 +608,17 @@
 					<script id="liftOfferFormTemplate" type="text/x-jsrender">
 						<div class="row"><div class="twelve columns"><h5>[[ #{label.lift_offer} ]]</h5></div></div>
 						<div class="row"><div class="twelve columns"><b>[[ #{label.lift_offer.start} ]]</b></div></div>
-						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:start.lat}}&nbsp;:&nbsp;{{:start.lng}}</div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:start.lat}}&nbsp;:&nbsp;{{:start.lon}}</div></div>
 						<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:start.address}}</div></div>
 						<div class="row">&nbsp;</div>
 						<div class="row"><div class="twelve columns"><b>[[ #{label.lift_offer.end} ]]</b></div></div>						
-						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:end.lat}}&nbsp;:&nbsp;{{:end.lng}}</div></div>
+						<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:end.lat}}&nbsp;:&nbsp;{{:end.lon}}</div></div>
 						<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:end.address}}</div></div>
 						{{if interimWaypoints && interimWaypoints.length > 0}}
 							<div class="row">&nbsp;</div>
 							<div class="row"><div class="twelve columns"><b>[[ #{label.interim_waypoints} ]]</b></div></div>
 							{{for interimWaypoints}}
-								<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:lat}}&nbsp;:&nbsp;{{:lng}}</div></div>
+								<div class="row"><div class="twelve columns"><b>[[ #{label.coordinates} ]]</b>: {{:lat}}&nbsp;:&nbsp;{{:lon}}</div></div>
 								<div class="row"><div class="twelve columns"><b>[[ #{label.address} ]]</b>: {{:address}}</div></div>
 							{{/for}}
 						{{/if}}
