@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -42,6 +43,12 @@ public class ControllerAdvices {
 			resp.setHeader("Location", webHelperService.getBaseUrl() + "/signin");
 			resp.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
 		}
+	}
+
+	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public void handleMethodNotSupported(HttpServletRequest req, HttpRequestMethodNotSupportedException exception) {
+		LOGGER.debug(req.getRequestURI() + " " + exception.getMessage());
 	}
 
 	@ExceptionHandler(Exception.class)
