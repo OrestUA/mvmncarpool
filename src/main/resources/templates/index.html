@@ -62,6 +62,8 @@
 			populateMyLiftRequests();
 			populateMyLiftOffers();
 			
+			setUiMode("requestLift");
+			
 			window.carpoolApp.autocomplete = new google.maps.places.Autocomplete(document.getElementById("placeSearchInput"));
 			window.carpoolApp.autocomplete.addListener('place_changed', function() {
 				var place = window.carpoolApp.autocomplete.getPlace();
@@ -252,33 +254,46 @@
 			});
 		}
 		
-		function showHideLiftRequestOnMap(show, liftRequestId, lat, lng, color, placeId) {
+		function showHideLiftRequestOnMap(show, liftRequestId, lat, lng, color, placeId, suppressCentering) {
 			if(show) {
-				var data = { 
-						position: new google.maps.LatLng(lat, lng), 
-						map: window.carpoolApp.mainMap, 
-						draggable: false,
-						clickable: true,
-						label: {
-							text: "" + window.carpoolApp.liftRequests[liftRequestId].indexInList,
-							color: "white",
-							fontWeight: "bold"
-						},
-						icon: {
-							path: google.maps.SymbolPath.BACKWARD_OPEN_ARROW,
-							scale: 5,
-							fillColor: color,
-							strokeColor: color,
-							fillOpacity: 0.5,
-							strokeWeight: 1,
-							labelOrigin: {x:0, y:-3}
+				var showHideCheckbox = $("#liftRequestListItem_showCheckbox"+liftRequestId)[0];
+				if(showHideCheckbox && showHideCheckbox.checked) {
+					if(window.carpoolApp.liftRequestMarkers[liftRequestId]) {
+						window.carpoolApp.liftRequestMarkers[liftRequestId].setMap(window.carpoolApp.mainMap);
+					} else {
+						var data = { 
+								position: new google.maps.LatLng(lat, lng), 
+								map: window.carpoolApp.mainMap, 
+								draggable: false,
+								clickable: true,
+								label: {
+									text: "" + window.carpoolApp.liftRequests[liftRequestId].indexInList,
+									color: "white",
+									fontWeight: "bold"
+								},
+								icon: {
+									path: google.maps.SymbolPath.BACKWARD_OPEN_ARROW,
+									scale: 5,
+									fillColor: color,
+									strokeColor: color,
+									fillOpacity: 0.5,
+									strokeWeight: 1,
+									labelOrigin: {x:0, y:-3}
+								}
+							};
+						if(placeId) {
+							data.place = { placeId: placeId, location: new google.maps.LatLng(lat, lng) };
 						}
-					};
-				if(placeId) {
-					data.place = { placeId: placeId, location: new google.maps.LatLng(lat, lng) };
+						window.carpoolApp.liftRequestMarkers[liftRequestId] = new google.maps.Marker(data);
+					}
+					if(!suppressCentering) {
+						window.carpoolApp.mainMap.setCenter(new google.maps.LatLng(lat, lng));
+					}
+				} else {
+					if(window.carpoolApp.liftRequestMarkers[liftRequestId]) {
+						window.carpoolApp.liftRequestMarkers[liftRequestId].setMap(null);
+					}
 				}
-				window.carpoolApp.liftRequestMarkers[liftRequestId] = new google.maps.Marker(data);
-				window.carpoolApp.mainMap.setCenter(new google.maps.LatLng(lat, lng));
 			} else {
 				if(window.carpoolApp.liftRequestMarkers[liftRequestId]) {
 					window.carpoolApp.liftRequestMarkers[liftRequestId].setMap(null);
@@ -301,9 +316,12 @@
 		
 		PubSub.subscribe("ui.mode_change", function(topic, uiMode) {
 			// Hide/show lift request markers on UI mode change
-			if(window.carpoolApp.liftRequestMarkers) {
-				for(var idx in window.carpoolApp.liftRequestMarkers) {
-					window.carpoolApp.liftRequestMarkers[idx].setMap(uiMode === 'requestLift' ? window.carpoolApp.mainMap : null);
+			if(window.carpoolApp.liftRequests && window.carpoolApp.liftRequestMarkers) {
+				var liftRequestIds = Object.keys(window.carpoolApp.liftRequests);
+				for(var idx in liftRequestIds) {
+					var liftRequest = window.carpoolApp.liftRequests[liftRequestIds[idx]];
+					showHideLiftRequestOnMap(uiMode === 'requestLift', liftRequestIds[idx], liftRequest.lat, liftRequest.lon, liftRequest.color, liftRequest.placeId);
+					//window.carpoolApp.liftRequestMarkers[idx].setMap(uiMode === 'requestLift' ? window.carpoolApp.mainMap : null);
 				}
 			}
 		});
@@ -585,11 +603,15 @@
 		}
 		
 		function removeLiftOfferFromList(liftOfferId) {
-			
+			if(window.carpoolApp.liftOffers[liftOfferId]) {
+				// FIXME: delete from map, delete from list
+				delete window.carpoolApp.liftOffers[liftOfferId];
+			}
 		}
 		
 		function deleteLiftOffer(liftOfferId) {
-			
+			// FIXME: AJAX call first, then on success do remove
+			removeLiftOfferFromList(liftOfferId);
 		}
 		
 		function addLiftOfferToList(idx, liftOffer) {
@@ -606,7 +628,7 @@
 				
 				liftOffer.routePathOverviewDecoded = google.maps.geometry.encoding.decodePath(liftOffer.route.overviewPolyline);
 				liftOffer.overviewPolyline = new google.maps.Polyline({
-				    map: window.carpoolApp.uiMode === 'requestLift' ? window.carpoolApp.mainMap : null,       
+				    map: window.carpoolApp.uiMode === 'offerLift' ? window.carpoolApp.mainMap : null,       
 					clickable: false,
 				    path: liftOffer.routePathOverviewDecoded,
 				    strokeColor: viewColor,
@@ -624,7 +646,7 @@
 					var wp = markerWaypoints[wpIdx];
 					liftOffer.markers.push(new google.maps.Marker({ 
 						position: wp.location, 
-						map: window.carpoolApp.uiMode === 'requestLift' ? window.carpoolApp.mainMap : null, 
+						map: window.carpoolApp.uiMode === 'offerLift' ? window.carpoolApp.mainMap : null, 
 						draggable: false,
 						clickable: false,
 						icon: {
