@@ -73,11 +73,17 @@
 				}
 			});
 		});
+		
+		$.get(window.carpoolApp.siteBaseUrl + "/api/vehicles", {}, function(vehicles) {
+			window.carpoolApp.vehicles = vehicles;
+			PubSub.publish("global.module.load.vehicles");
+		});
 
 		window.carpoolApp.loadedModules = [];
 		PubSub.subscribe("global.module.load", function(moduleName) {
 			window.carpoolApp.loadedModules.push(moduleName);
-			if(window.carpoolApp.loadedModules.length == 2) {
+			
+			if(window.carpoolApp.loadedModules.length == 3) {
 				PubSub.publish("global.carpoolApp.ready");
 			}
 		});
@@ -320,7 +326,7 @@
 				var liftRequestIds = Object.keys(window.carpoolApp.liftRequests);
 				for(var idx in liftRequestIds) {
 					var liftRequest = window.carpoolApp.liftRequests[liftRequestIds[idx]];
-					showHideLiftRequestOnMap(uiMode === 'requestLift', liftRequestIds[idx], liftRequest.lat, liftRequest.lon, liftRequest.color, liftRequest.placeId);
+					showHideLiftRequestOnMap(uiMode === 'requestLift', liftRequestIds[idx], liftRequest.lat, liftRequest.lon, liftRequest.color, liftRequest.placeId, true);
 					//window.carpoolApp.liftRequestMarkers[idx].setMap(uiMode === 'requestLift' ? window.carpoolApp.mainMap : null);
 				}
 			}
@@ -337,7 +343,7 @@
 			}
 			// Hide/show lift offers
 			for(var liftOfferId in window.carpoolApp.liftOffers) {
-				showHideLiftOfferOnMap(uiMode === 'offerLift', liftOfferId);
+				showHideLiftOfferOnMap(uiMode === 'offerLift', liftOfferId, true);
 			}
 		});
 		
@@ -521,6 +527,7 @@
 			}
 			
 			$.get(window.carpoolApp.siteBaseUrl + "/api/vehicles", {}, function(vehicles) {
+				window.carpoolApp.vehicles = vehicles;
 				data.vehicles = vehicles;
 				showConfirmation($.templates("#liftOfferFormTemplate").render(data), 'label.cancel', 'label.create', function(event) {
 					var selectedStartH = parseInt($("#liftOfferStartTimeH").val());
@@ -573,6 +580,16 @@
 						
 						makeApiCall("/api/liftOffer", 'POST', liftOfferDto, function(result) {
 							showPopup(window.carpoolApp.l10n['label.liftoffer.createsuccess']);
+							var maxIndex = 0;
+							for(var idx in window.carpoolApp.liftOffers) {
+								var liftOffer = window.carpoolApp.liftOffers[idx];
+								if(liftOffer.indexInList > maxIndex) {
+									maxIndex = liftOffer.indexInList;
+								}
+							}
+							
+							result.data.indexInList = maxIndex + 1;
+							addLiftOfferToList(result.data);
 							deleteAllWaypoints();
 						});
 					}
@@ -596,8 +613,8 @@
 				
 				for(var idx in liftOffers) {
 					var liftOffer = liftOffers[idx];
-					liftOffer.indexInList = parseInt(idx);
-					(function(idx, liftOffer) { addLiftOfferToList(idx, liftOffer); })(idx, liftOffer);
+					liftOffer.indexInList = parseInt(idx) + 1;
+					addLiftOfferToList(liftOffer);
 				}
 				$(".liftOfferListItemShowCheckbox").click();
 				
@@ -618,17 +635,24 @@
 			removeLiftOfferFromList(liftOfferId);
 		}
 		
-		function showHideLiftOfferOnMap(show, liftOfferId) {
+		function showHideLiftOfferOnMap(show, liftOfferId, suppressCentering) {
 			if(window.carpoolApp.liftOffers[liftOfferId]) {
 				var liftOffer = window.carpoolApp.liftOffers[liftOfferId];
 				liftOffer.overviewPolyline.setMap(show? window.carpoolApp.mainMap : null);
 				for(var idx in liftOffer.markers) {
 					liftOffer.markers[idx].setMap(show? window.carpoolApp.mainMap : null);
 				}
+				if(show && !suppressCentering) {
+					var bounds = new google.maps.LatLngBounds();
+					for (var idx in liftOffer.routePathOverviewDecoded) {
+						bounds.extend(liftOffer.routePathOverviewDecoded[idx]);
+					}
+					window.carpoolApp.mainMap.fitBounds(bounds);
+				}
 			}
 		}
 		
-		function addLiftOfferToList(idx, liftOffer) {
+		function addLiftOfferToList(liftOffer) {
 			if(liftOffer && liftOffer.route && liftOffer.route.overviewPolyline) {
 				window.carpoolApp.liftOffers[liftOffer.id] = liftOffer;
 				var userWaypoints = [];
@@ -638,11 +662,23 @@
 					}
 				}
 				
-				var viewColor = uniqueColor(parseInt(liftOffer.indexInList), 100, 40);
+				var viewColor = uniqueColor(parseInt(liftOffer.indexInList - 1), 100, 40);
+				liftOffer.color = viewColor;
+				liftOffer.validFrom = fmtDateShortest(unixts2date(liftOffer.timeValidFrom));
+				liftOffer.validTo = fmtDateShortest(unixts2date(liftOffer.timeValidTo));
+				
+				var vehicle;
+				for(var idx in window.carpoolApp.vehicles) {
+					var vehicleCandidate = window.carpoolApp.vehicles[idx];
+					if(vehicleCandidate.id == liftOffer.vehicleId) {
+						vehicle = vehicleCandidate;
+					}
+				}
+				liftOffer.vehicle = vehicle;
 				
 				liftOffer.routePathOverviewDecoded = google.maps.geometry.encoding.decodePath(liftOffer.route.overviewPolyline);
 				liftOffer.overviewPolyline = new google.maps.Polyline({
-				    map: window.carpoolApp.uiMode === 'offerLift' ? window.carpoolApp.mainMap : null,       
+				    map: window.carpoolApp.uiMode === 'offerLift' ? window.carpoolApp.mainMap : null,
 					clickable: false,
 				    path: liftOffer.routePathOverviewDecoded,
 				    strokeColor: viewColor,
@@ -660,7 +696,7 @@
 					var wp = markerWaypoints[wpIdx];
 					liftOffer.markers.push(new google.maps.Marker({ 
 						position: wp.location, 
-						map: window.carpoolApp.uiMode === 'offerLift' ? window.carpoolApp.mainMap : null, 
+						map: window.carpoolApp.uiMode === 'offerLift' ? window.carpoolApp.mainMap : null,
 						draggable: false,
 						clickable: false,
 						icon: {
@@ -674,7 +710,7 @@
 					}));
 				}
 				
-				//$("#myLiftOffersContainer").append($.templates("#liftOfferListItemTemplate").render(liftOffer));
+				$("#myLiftOffersContainer").append($.templates("#liftOfferListItemTemplate").render(liftOffer));
 			}
 		}
 	</script>
@@ -820,7 +856,7 @@
 							<div>{{>validFrom}}&nbsp;-&nbsp;{{>validTo}}</div>
 							<div>{{>notes}}</div>
 							<hr class="halfWidth" />			
-						</div>					
+						</div>
 					</script>
 					<div id="myLiftRequestsContainer" class="u-full-width">
 						<div class="u-full-width" style="text-align: center"><i class="fa fa-circle-o-notch fa-spin fa-fw"></i></div>
@@ -887,6 +923,23 @@
 						<i class="fa fa-caret-down" aria-hidden="true" id="myLiftOffersContainer_hider" onclick="toggleCollapse('myLiftOffersContainer')"></i>
 						<i class="fa fa-caret-left" aria-hidden="true" style="display: none" id="myLiftOffersContainer_revealer" onclick="toggleCollapse('myLiftOffersContainer')"></i>				
 					</h5>
+					<script id="liftOfferListItemTemplate" type="text/x-jsrender">
+						<div class="u-full-width" id="liftOfferList_{{>id}}">
+							<div class="u-full-width">
+								<div style="display: inline-block; font-weight: bold; padding: 4px; color: white; background-color: {{>color}}">#{{>indexInList}}</div>
+								<input type="checkbox" class="liftOffertListItemShowCheckbox" id="liftOfferListItem_showCheckbox{{>id}}" checked="checked" onclick="showHideLiftOfferOnMap(this.checked, {{>id}})" />&nbsp;[[ #{label.show_on_map} ]]
+								<span style="color: {{>color}}; display: inline-block"><i class="fa fa-map-marker" aria-hidden="true"></i></span>
+								<div style="display: inline-block" class="u-pull-right">
+									<button id="btnDeleteLiftOffer_{{>id}}" class="narrow" onclick="deleteLiftOffer({{>id}})">X <i class="waitIndicator fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+								</div>
+							</div>
+							<div class="u-full-width">{{>route.title}}</div>
+							<div class="u-full-width">{{>validFrom}}&nbsp;-&nbsp;{{>validTo}}</div>
+							<div class="u-full-width">{{>notes}}</div>
+							<div class="u-full-width">{{>vehicle.plateNumber}} {{>vehicle.name}}</div>
+							<hr class="halfWidth" />			
+						</div>
+					</script>
 					<div id="myLiftOffersContainer">
 						<div class="u-full-width">
 							TODO: Implement
