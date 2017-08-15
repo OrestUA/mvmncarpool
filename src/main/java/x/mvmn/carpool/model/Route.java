@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
@@ -23,6 +24,7 @@ public class Route implements DrivePath {
 	protected double endLon;
 	protected List<RouteWaypoint> waypoints;
 	protected User user;
+	protected String overviewPolyline;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -99,5 +101,14 @@ public class Route implements DrivePath {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	@Lob
+	public String getOverviewPolyline() {
+		return overviewPolyline;
+	}
+
+	public void setOverviewPolyline(String overviewPolyline) {
+		this.overviewPolyline = overviewPolyline;
 	}
 }

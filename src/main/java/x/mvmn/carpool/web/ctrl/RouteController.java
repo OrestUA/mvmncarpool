@@ -68,6 +68,7 @@ public class RouteController {
 		route.setFavoured(true);
 
 		route.setTitle(routeDTO.getTitle());
+		route.setOverviewPolyline(routeDTO.getOverviewPolyline());
 		route.setStartLat(routeDTO.getStartLat());
 		route.setStartLon(routeDTO.getStartLon());
 		route.setEndLat(routeDTO.getEndLat());

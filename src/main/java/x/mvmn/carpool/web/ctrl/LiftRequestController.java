@@ -49,12 +49,12 @@ public class LiftRequestController {
 
 	@RequestMapping(path = "/api/liftrequest", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasRole('ROLE_USER')")
-	public @ResponseBody List<LiftRequestDTO> listOwnLiftRequests(Authentication auth, @RequestParam(name = "activeOnly", required = false) Boolean activeOnly,
+	public @ResponseBody List<LiftRequestDTO> listOwnLiftRequests(Authentication auth, @RequestParam(name = "actualOnly", required = false) Boolean actualOnly,
 			@RequestParam(name = "ownOnly", required = false) Boolean ownOnly, @RequestParam(name = "userId", required = false) Integer userId) {
 		// TODO: consider paging
 		List<LiftRequest> liftRequests;
 		Specifications<LiftRequest> searchSpecs = null;
-		if (activeOnly != null && activeOnly.booleanValue()) {
+		if (actualOnly != null && actualOnly.booleanValue()) {
 			searchSpecs = Specifications.where(LiftRequestRepository.specValidAfter(System.currentTimeMillis() / 1000));
 		}
 

@@ -17,6 +17,7 @@ public class RouteDTO implements DrivePath {
 	protected double endLon;
 	protected List<RouteWaypointDTO> waypoints;
 	protected int userId;
+	protected String overviewPolyline;
 
 	public int getId() {
 		return id;
@@ -90,6 +91,14 @@ public class RouteDTO implements DrivePath {
 		this.userId = userId;
 	}
 
+	public String getOverviewPolyline() {
+		return overviewPolyline;
+	}
+
+	public void setOverviewPolyline(String overviewPolyline) {
+		this.overviewPolyline = overviewPolyline;
+	}
+
 	public static RouteDTO fromRoute(Route route) {
 		RouteDTO result = new RouteDTO();
 
@@ -102,6 +111,7 @@ public class RouteDTO implements DrivePath {
 		result.setUserId(route.getUser().getId());
 		result.setFavoured(route.getFavoured());
 		result.setWaypoints(route.getWaypoints().stream().map(RouteWaypointDTO::fromRouteWaypoint).collect(Collectors.toList()));
+		result.setOverviewPolyline(route.getOverviewPolyline());
 
 		return result;
 	}

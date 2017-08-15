@@ -9,10 +9,12 @@
 		function geocode(location, callback, skipOnError) {
 			var cacheKey = String(location.lat).replace(".", "_") + "__" + String(location.lat).replace(".", "_");
 			if(window.carpoolApp.geocoderCache[cacheKey]) {
+				// console.log("Geocode cache hit");
 				setTimeout(function() {
 					callback(window.carpoolApp.geocoderCache[cacheKey]);
 				}, 0);
 			} else {
+				// console.log("Geocode cache miss");
 				window.carpoolApp.geocoder.geocode({location:location}, function(results, status) {
 					if(status === 'OK' && results && results.length > 0) {
 						callback(results[0].formatted_address);
@@ -58,6 +60,7 @@
 			});
 			
 			populateMyLiftRequests();
+			populateMyLiftOffers();
 			
 			window.carpoolApp.autocomplete = new google.maps.places.Autocomplete(document.getElementById("placeSearchInput"));
 			window.carpoolApp.autocomplete.addListener('place_changed', function() {
@@ -213,7 +216,7 @@
 			}
 			window.carpoolApp.liftRequestMarkers = {};
 			$("#myLiftRequestsContainer").html('<div class="u-full-width" style="text-align: center"><i class="fa fa-circle-o-notch fa-spin fa-fw"></i></div>');
-			makeApiCall("/api/liftrequest?ownOnly=true&activeOnly=true", 'GET', null, function(liftRequests) {
+			makeApiCall("/api/liftrequest?ownOnly=true&actualOnly=true", 'GET', null, function(liftRequests) {
 				$("#myLiftRequestsContainer").html('');
 				window.carpoolApp.liftRequests = {};
 				for(var idx in liftRequests) {
@@ -242,6 +245,8 @@
 			makeApiCall("/api/liftrequest/" + liftRequestId, 'DELETE', null, function(vehicleDto) {
 				$("#liftRequestsList_" + liftRequestId).remove();
 				showHideLiftRequestOnMap(false, liftRequestId);
+				
+				delete window.carpoolApp.liftRequests[liftRequestId];
 			}, null, function() {
 				formSubmitBtnSetState("btnDeleteLiftRequest_" + liftRequestId, false, false);
 			});
@@ -300,6 +305,9 @@
 				for(var idx in window.carpoolApp.liftRequestMarkers) {
 					window.carpoolApp.liftRequestMarkers[idx].setMap(uiMode === 'requestLift' ? window.carpoolApp.mainMap : null);
 				}
+			}
+			if() {
+				
 			}
 		});
 		
@@ -514,8 +522,9 @@
 						endDate.setHours(selectedEndH);
 						endDate.setMinutes(selectedEndM);
 						
+						var overviewPolyline = window.carpoolApp.directionsDisplay.getDirections().routes[0].overview_polyline;
 						if(carpoolApp.directionsDisplay.getDirections().routes[0].overview_path) {
-							var overviewPath = carpoolApp.directionsDisplay.getDirections().routes[0].overview_path;
+							var overviewPath = window.carpoolApp.directionsDisplay.getDirections().routes[0].overview_path;
 							for(var wpIdx in overviewPath) {
 								interimWaypoints.push({
 									lat: overviewPath[wpIdx].lat(),
@@ -538,7 +547,8 @@
 									startLon: data.start.lon,
 									endLat: data.end.lat,
 									endLon: data.end.lon,
-									waypoints: interimWaypoints
+									waypoints: interimWaypoints,
+									overviewPolyline: overviewPolyline
 								}
 							};
 						
@@ -552,8 +562,90 @@
 				$("#profilePageCarListLoadingIndicator").html(exclamationSign + " " + (xhr.responseJSON ? xhr.responseJSON.message : (xhr.statusText + " " + xhr.status)));
 			});
 		}
+		
+		function populateMyLiftOffers() {
+			if(window.carpoolApp.liftOffers) {
+				var liftOfferIds = Object.keys(window.carpoolApp.liftOffers);
+				for(var idx in liftOfferIds) {
+					removeLiftOfferFromList(liftOfferIds[idx]);
+				}
+			}			
+			window.carpoolApp.liftOffers = {};
+			$("#myLiftOffersContainer").html('<div class="u-full-width" style="text-align: center"><i class="fa fa-circle-o-notch fa-spin fa-fw"></i></div>');
+			makeApiCall("/api/liftOffer/own?actualOnly=true", 'GET', null, function(liftOffers) {
+				$("#myLiftOffersContainer").html('');
+				
+				for(var idx in liftOffers) {
+					var liftOffer = liftOffers[idx];
+					liftOffer.indexInList = parseInt(idx);
+					(function(idx, liftOffer) { addLiftOfferToList(idx, liftOffer); })(idx, liftOffer);
+				}
+				$(".liftOfferListItemShowCheckbox").click();
+				
+			}, function(xhr, status, error) { 
+				$("#myLiftOffersContainer").html(xhr.responseJSON? (exclamationSign + " " + xhr.responseJSON.message) : (exclamationSign + " " + xhr.statusText + " " + xhr.status)); 
+			});
+		}
+		
+		function removeLiftOfferFromList(liftOfferId) {
+			
+		}
+		
+		function deleteLiftOffer(liftOfferId) {
+			
+		}
+		
+		function addLiftOfferToList(idx, liftOffer) {
+			if(liftOffer && liftOffer.route && liftOffer.route.overviewPolyline) {
+				window.carpoolApp.liftOffers[liftOffer.id] = liftOffer;
+				var userWaypoints = [];
+				for(var wpIdx in liftOffer.route.waypoints) {
+					if(liftOffer.route.waypoints[wpIdx].userSpecified) {
+						userWaypoints.push({ location: new google.maps.LatLng(liftOffer.route.waypoints[wpIdx].lat, liftOffer.route.waypoints[wpIdx].lon), stopover: false });
+					}
+				}
+				
+				var viewColor = uniqueColor(parseInt(liftOffer.indexInList), 100, 40);
+				
+				liftOffer.routePathOverviewDecoded = google.maps.geometry.encoding.decodePath(liftOffer.route.overviewPolyline);
+				liftOffer.overviewPolyline = new google.maps.Polyline({
+				    map: window.carpoolApp.uiMode === 'requestLift' ? window.carpoolApp.mainMap : null,       
+					clickable: false,
+				    path: liftOffer.routePathOverviewDecoded,
+				    strokeColor: viewColor,
+				    strokeOpacity: 0.5
+				});
+				
+				liftOffer.markers = [];
+				var markerWaypoints = [
+						{ location: new google.maps.LatLng(liftOffer.route.startLat, liftOffer.route.startLon) },
+						{ location: new google.maps.LatLng(liftOffer.route.endLat, liftOffer.route.endLon) }
+					];
+				markerWaypoints = markerWaypoints.concat(userWaypoints);
+				
+				for(var wpIdx in markerWaypoints) {
+					var wp = markerWaypoints[wpIdx];
+					liftOffer.markers.push(new google.maps.Marker({ 
+						position: wp.location, 
+						map: window.carpoolApp.uiMode === 'requestLift' ? window.carpoolApp.mainMap : null, 
+						draggable: false,
+						clickable: false,
+						icon: {
+							path: google.maps.SymbolPath.CIRCLE,
+							scale: 4,
+							fillColor: viewColor,
+							strokeColor: "black",
+							fillOpacity: 0.5,
+							strokeWeight: 0
+						}
+					}));
+				}
+				
+				//$("#myLiftOffersContainer").append($.templates("#liftOfferListItemTemplate").render(liftOffer));
+			}
+		}
 	</script>
-	<script th:src="'https://maps.googleapis.com/maps/api/js?libraries=places&callback=onGoogleMapsLoad&language=' + ${#locale.getLanguage()}"></script>
+	<script th:src="'https://maps.googleapis.com/maps/api/js?libraries=places,geometry&callback=onGoogleMapsLoad&language=' + ${#locale.getLanguage()}"></script>
 </head>
 <body id="page_main">
 	<div class="container">

@@ -36,6 +36,7 @@ import x.mvmn.carpool.service.persistence.RouteWaypointRepository;
 import x.mvmn.carpool.service.persistence.VehicleRepository;
 import x.mvmn.carpool.web.dto.GenericResultDTO;
 import x.mvmn.carpool.web.dto.LiftOfferDTO;
+import x.mvmn.carpool.web.dto.RouteDTO;
 import x.mvmn.carpool.web.dto.RouteWaypointDTO;
 import x.mvmn.util.CoordinatesUtil;
 import x.mvmn.util.web.auth.UserUtil;
@@ -174,6 +175,7 @@ public class LiftOfferController {
 						if (liftOffer.getRoute().getFavoured()) {
 							// If route is favoured - we shouldn't change it. We'll create a copy of it instead.
 							Route routeClone = new Route();
+							routeClone.setOverviewPolyline(storedRoute.getOverviewPolyline());
 							routeClone.setStartLat(storedRoute.getStartLat());
 							routeClone.setStartLon(storedRoute.getStartLon());
 							routeClone.setEndLat(storedRoute.getEndLat());
@@ -202,16 +204,18 @@ public class LiftOfferController {
 				} else {
 					// Create route and waypoints
 					storedRoute = new Route();
-					storedRoute.setStartLat(liftOfferDTO.getRoute().getStartLat());
-					storedRoute.setStartLon(liftOfferDTO.getRoute().getStartLon());
-					storedRoute.setEndLat(liftOfferDTO.getRoute().getEndLat());
-					storedRoute.setEndLon(liftOfferDTO.getRoute().getEndLon());
-					storedRoute.setTitle(liftOfferDTO.getRoute().getTitle());
-					storedRoute.setFavoured(liftOfferDTO.getRoute().getFavoured());
+					RouteDTO routeDto = liftOfferDTO.getRoute();
+					storedRoute.setOverviewPolyline(routeDto.getOverviewPolyline());
+					storedRoute.setStartLat(routeDto.getStartLat());
+					storedRoute.setStartLon(routeDto.getStartLon());
+					storedRoute.setEndLat(routeDto.getEndLat());
+					storedRoute.setEndLon(routeDto.getEndLon());
+					storedRoute.setTitle(routeDto.getTitle());
+					storedRoute.setFavoured(routeDto.getFavoured());
 					storedRoute.setUser(currentUser);
 					storedRoute.setWaypoints(new ArrayList<>());
 					storedRoute = routeRepository.save(storedRoute);
-					for (RouteWaypointDTO wpDTO : liftOfferDTO.getRoute().getWaypoints()) {
+					for (RouteWaypointDTO wpDTO : routeDto.getWaypoints()) {
 						RouteWaypoint wp = new RouteWaypoint();
 						wp.setRoute(storedRoute);
 						wp.setLat(wpDTO.getLat());
