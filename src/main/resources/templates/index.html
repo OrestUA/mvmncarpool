@@ -249,8 +249,10 @@
 		}
 		
 		function deleteLiftRequest(liftRequestId) {
+			// TODO: confirmation
+			
 			formSubmitBtnSetState("btnDeleteLiftRequest_" + liftRequestId, true, true);
-			makeApiCall("/api/liftrequest/" + liftRequestId, 'DELETE', null, function(vehicleDto) {
+			makeApiCall("/api/liftrequest/" + liftRequestId, 'DELETE', null, function() {
 				$("#liftRequestsList_" + liftRequestId).remove();
 				showHideLiftRequestOnMap(false, liftRequestId);
 				
@@ -625,14 +627,20 @@
 		
 		function removeLiftOfferFromList(liftOfferId) {
 			if(window.carpoolApp.liftOffers[liftOfferId]) {
-				// FIXME: delete from map, delete from list
+				showHideLiftOfferOnMap(false, liftOfferId);
+				$("#liftOfferList_" + liftOfferId).remove();
 				delete window.carpoolApp.liftOffers[liftOfferId];
 			}
 		}
 		
 		function deleteLiftOffer(liftOfferId) {
-			// FIXME: AJAX call first, then on success do remove
-			removeLiftOfferFromList(liftOfferId);
+			// TODO: confirm
+			formSubmitBtnSetState("btnDeleteLiftOffer_" + liftOfferId, true, true);
+			makeApiCall("/api/liftOffer/" + liftOfferId, 'DELETE', null, function() {
+				removeLiftOfferFromList(liftOfferId);
+			}, null, function() {
+				formSubmitBtnSetState("btnDeleteLiftOffer_" + liftOfferId, false, false);
+			});			
 		}
 		
 		function showHideLiftOfferOnMap(show, liftOfferId, suppressCentering) {
