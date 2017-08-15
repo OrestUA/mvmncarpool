@@ -327,13 +327,17 @@
 		});
 		
 		PubSub.subscribe("ui.mode_change", function(topic, uiMode) {
-			// Hide/show lift request markers on UI mode change
+			// Hide/show lift offer start markers on UI mode change
 			window.carpoolApp.directionsDisplay.setMap(uiMode === 'offerLift' ? window.carpoolApp.mainMap : null);
 			if(window.carpoolApp.routeStartMarker) {
 				window.carpoolApp.routeStartMarker.setMap(uiMode === 'offerLift' ? window.carpoolApp.mainMap : null);
 			}
 			if(window.carpoolApp.routeEndMarker) {
 				window.carpoolApp.routeEndMarker.setMap(uiMode === 'offerLift' ? window.carpoolApp.mainMap : null);
+			}
+			// Hide/show lift offers
+			for(var liftOfferId in window.carpoolApp.liftOffers) {
+				showHideLiftOfferOnMap(uiMode === 'offerLift', liftOfferId);
 			}
 		});
 		
@@ -612,6 +616,16 @@
 		function deleteLiftOffer(liftOfferId) {
 			// FIXME: AJAX call first, then on success do remove
 			removeLiftOfferFromList(liftOfferId);
+		}
+		
+		function showHideLiftOfferOnMap(show, liftOfferId) {
+			if(window.carpoolApp.liftOffers[liftOfferId]) {
+				var liftOffer = window.carpoolApp.liftOffers[liftOfferId];
+				liftOffer.overviewPolyline.setMap(show? window.carpoolApp.mainMap : null);
+				for(var idx in liftOffer.markers) {
+					liftOffer.markers[idx].setMap(show? window.carpoolApp.mainMap : null);
+				}
+			}
 		}
 		
 		function addLiftOfferToList(idx, liftOffer) {
