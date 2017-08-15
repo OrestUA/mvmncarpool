@@ -212,7 +212,7 @@
 			} else if(date.getMonth() != now.getMonth() || date.getDate() != now.getDate()) {
 				result += window.carpoolApp.l10n['month.short.'+date.getMonth()] + '/' + date.getDate() + ' ';
 			}
-			result += date.getHours() + ':' + date.getMinutes();
+			result += date.getHours() + ':' + (date.getMinutes()<10? "0" : "") + date.getMinutes();
 			return result;
 		}
 		
