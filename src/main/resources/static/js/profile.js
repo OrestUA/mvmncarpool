@@ -1,5 +1,5 @@
 function deleteVehicle(id) {
-	showConfirmation(window.carpoolApp.l10n['label.confirm_delete_vehicle'].replace('{0}', $("#vehicle_name_"+id).val()), 'label.no', 'label.yes', function (){
+	showConfirmation(window.carpoolApp.l10n['label.confirm_delete_vehicle'].replace('{0}', $("#vehicle_name_"+id).val()), 'label.no', 'label.yes', function () {
 		formSubmitBtnSetState("btn_delete_vehicle_"+id, true, true);
 		makeApiCall("/api/vehicles/"+id, 'DELETE', null, function() {
 			$("#vehicleRow_"+id).remove();

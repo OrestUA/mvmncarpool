@@ -249,16 +249,16 @@
 		}
 		
 		function deleteLiftRequest(liftRequestId) {
-			// TODO: confirmation
-			
-			formSubmitBtnSetState("btnDeleteLiftRequest_" + liftRequestId, true, true);
-			makeApiCall("/api/liftrequest/" + liftRequestId, 'DELETE', null, function() {
-				$("#liftRequestsList_" + liftRequestId).remove();
-				showHideLiftRequestOnMap(false, liftRequestId);
-				
-				delete window.carpoolApp.liftRequests[liftRequestId];
-			}, null, function() {
-				formSubmitBtnSetState("btnDeleteLiftRequest_" + liftRequestId, false, false);
+			showConfirmation(window.carpoolApp.l10n['label.confirm_delete_lift_request'], 'label.no', 'label.yes', function () {				
+				formSubmitBtnSetState("btnDeleteLiftRequest_" + liftRequestId, true, true);
+				makeApiCall("/api/liftrequest/" + liftRequestId, 'DELETE', null, function() {
+					$("#liftRequestsList_" + liftRequestId).remove();
+					showHideLiftRequestOnMap(false, liftRequestId);
+					
+					delete window.carpoolApp.liftRequests[liftRequestId];
+				}, null, function() {
+					formSubmitBtnSetState("btnDeleteLiftRequest_" + liftRequestId, false, false);
+				});
 			});
 		}
 		
@@ -634,13 +634,14 @@
 		}
 		
 		function deleteLiftOffer(liftOfferId) {
-			// TODO: confirm
-			formSubmitBtnSetState("btnDeleteLiftOffer_" + liftOfferId, true, true);
-			makeApiCall("/api/liftOffer/" + liftOfferId, 'DELETE', null, function() {
-				removeLiftOfferFromList(liftOfferId);
-			}, null, function() {
-				formSubmitBtnSetState("btnDeleteLiftOffer_" + liftOfferId, false, false);
-			});			
+			showConfirmation(window.carpoolApp.l10n['label.confirm_delete_lift_offer'], 'label.no', 'label.yes', function () {				
+				formSubmitBtnSetState("btnDeleteLiftOffer_" + liftOfferId, true, true);
+				makeApiCall("/api/liftOffer/" + liftOfferId, 'DELETE', null, function() {
+					removeLiftOfferFromList(liftOfferId);
+				}, null, function() {
+					formSubmitBtnSetState("btnDeleteLiftOffer_" + liftOfferId, false, false);
+				});
+			});
 		}
 		
 		function showHideLiftOfferOnMap(show, liftOfferId, suppressCentering) {
